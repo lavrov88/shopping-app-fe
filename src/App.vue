@@ -3,13 +3,15 @@ import { useSettingsStore } from './stores/settingsStore';
 import AppHeader from './components/app-header/app-header.vue'
 import AppMain from './components/app-main/app-main.vue'
 import AppNav from './components/app-nav/app-nav.vue'
+import AppAlerts from './components/app-alerts.vue';
 const settingsStore = useSettingsStore()
 
-settingsStore.checkLocalStorageAuth()
+settingsStore.checkLocalStorageAuth() // check localStorage auth after app started
 </script>
 
 <template>
   <v-layout>
+    <app-alerts />
     <app-nav />
     <div class="main-layout">
       <v-card :rounded="true">

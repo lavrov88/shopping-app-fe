@@ -19,6 +19,9 @@ const isMinimized = computed(() => {
 const onTogglePuchaseChecked = (purchase: PurchaseItem) => {
   listsStore.editPurchases(list.id, [purchase])
 }
+const onDeletePurchase = (purchase: PurchaseItem) => {
+  listsStore.deletePurchases(list.id, [purchase])
+}
 </script>
 
 <template>
@@ -61,6 +64,7 @@ const onTogglePuchaseChecked = (purchase: PurchaseItem) => {
             v-for="purchase in list.items"
             :key="purchase.id"
             @toggleChecked="onTogglePuchaseChecked"
+            @deleteItem="onDeletePurchase"
             :purchase="purchase"
             :color="list.color"
           />

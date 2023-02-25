@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useSettingsStore } from '../../stores/settingsStore'
-import AppNavLoginDialog from './app-nav-login-dialog.vue';
+import DialogLogin from '../app-dialogs/dialog-login.vue';
+import DialogManageLists from '../app-dialogs/dialog-manage-lists/dialog-manage-lists.vue';
 
 const settingsStore = useSettingsStore()
 
@@ -19,6 +20,10 @@ const onLoginClick = () => {
 const onLogoutClick = () => {
   settingsStore.logout()
 }
+const onManageListsClick = () => {
+  settingsStore.listsManageDialogIsOpen = true
+  settingsStore.optionsMenuIsOpen = false
+}
 </script>
 
 <template>
@@ -34,6 +39,7 @@ const onLogoutClick = () => {
     <v-divider></v-divider>
 
     <v-list density="compact" nav>
+
       <v-list-item
         v-if="!isAuthorized"
         title="Profile"
@@ -44,6 +50,7 @@ const onLogoutClick = () => {
         :title="username as string"
         subtitle="You are logged in"
       ></v-list-item>
+
       <v-list-item
         v-if="!isAuthorized"
         @click="onLoginClick"
@@ -60,11 +67,22 @@ const onLogoutClick = () => {
         value="Logout"
         variant="tonal"
       ></v-list-item>
+
+      <v-list-item
+        v-if="isAuthorized"
+        @click="onManageListsClick"
+        prepend-icon="mdi-view-dashboard"
+        title="Manage lists"
+        value="Manage lists"
+        variant="tonal"
+      ></v-list-item>
+
     </v-list>
     <v-divider></v-divider>
 
   </v-navigation-drawer>
-  <app-nav-login-dialog />
+  <dialog-login />
+  <dialog-manage-lists />
 </template>
 
 <style scoped>

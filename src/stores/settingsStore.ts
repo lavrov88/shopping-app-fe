@@ -1,19 +1,36 @@
 import { AxiosResponse } from 'axios'
 import { defineStore } from 'pinia'
 import { authApi, settingsApi } from '../utils/api'
+import { getRandom } from '../utils/common'
 import { LS } from '../utils/localStorage'
 import { useListsStore } from './listsStore'
 
 export const useSettingsStore = defineStore('settingsStore', {
   state: () =>({
+    alertsToShow: [] as AlertToShow[],
+
     optionsMenuIsOpen: false,
     loginDialogIsOpen: false,
+    listsManageDialogIsOpen: false,
+
     loginInProgress: false,
     isAuthorized: false,
     user: null as UserData | null,
     userSettings: null as UserSettings | null,
   }),
   actions: {
+    addAlert(message: string, type: AlertTypes = 'error') {
+      const newAlert = {
+        id: getRandom('alert'),
+        type,
+        message
+      }
+      this.alertsToShow = [ ...this.alertsToShow, newAlert ]
+    },
+    removeAlert(id: string) {
+      this.alertsToShow = this.alertsToShow.filter(a => a.id !== id)
+    },
+
     async login(username: string, password: string) {
       this.loginInProgress = true
       const res = await authApi.login(username, password) as AxiosResponse
@@ -67,3 +84,9 @@ interface UserSettings {
   minimizedLists: string[]
   sharedListsRequests: string[]
 }
+interface AlertToShow {
+  id: string
+  type: AlertTypes
+  message: string
+}
+type AlertTypes = 'error' | 'info' | 'success'

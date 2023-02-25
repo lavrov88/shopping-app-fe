@@ -1,4 +1,4 @@
-import { PurchaseItem } from './../stores/listsStore';
+import { ListUpdateObject, PurchaseItem } from './../stores/listsStore';
 import axios, { AxiosError } from "axios";
 import { API_URL } from "./constants";
 import { LS } from './localStorage';
@@ -17,6 +17,12 @@ const getConfig = () => {
   }
 }
 
+const handleAxiosError = (e: AxiosError) => {
+  const status = e.response?.status || 0
+  const statusText = e.response?.statusText || e.message
+  return { status, statusText }
+}
+
 export const authApi = {
   async login(username: string, password: string) {
     try {
@@ -32,6 +38,9 @@ export const authApi = {
 }
 
 export const listsApi = {
+
+  // LISTS
+
   async getLists() {
     try {
       const response = await instance.get(
@@ -40,18 +49,55 @@ export const listsApi = {
       )
       return response
     } catch (e) {
-      return (e as AxiosError).response
+      return handleAxiosError(e as AxiosError)
     }
   },
 
+  async editList(payload: ListUpdateObject) {
+    try {
+      const response = await instance.put(
+        `/lists`,
+        payload,
+        getConfig()
+      )
+      return response
+    } catch (e) {
+      return handleAxiosError(e as AxiosError)
+    }
+  },
+
+  async createList(payload: { name: string, color: string }) {
+    try {
+      const response = await instance.post(
+        `/lists`,
+        payload,
+        getConfig()
+      )
+      return response
+    } catch (e) {
+      return handleAxiosError(e as AxiosError)
+    }
+  },
+
+  async deleteList(listId: string) {
+    try {
+      const response = await instance.delete(
+        `/lists/${listId}`,
+        getConfig()
+      )
+      return response
+    } catch (e) {
+      return handleAxiosError(e as AxiosError)
+    }
+  },
 
   // PURCHASES
 
-  async addNewPurchases(listId: string, puchasesNames: string[]) {
+  async addNewPurchases(listId: string, purchaseNames: string[]) {
     try {
       const response = await instance.post(
         `/lists/${listId}`,
-        puchasesNames,
+        purchaseNames,
         getConfig()
       )
       return response
@@ -60,11 +106,24 @@ export const listsApi = {
     }
   },
 
-  async editPurchases(listId: string, puchases: PurchaseItem[]) {
+  async editPurchases(listId: string, purchases: PurchaseItem[]) {
     try {
       const response = await instance.put(
         `/lists/${listId}`,
-        puchases,
+        purchases,
+        getConfig()
+      )
+      return response
+    } catch (e) {
+      return (e as AxiosError).response
+    }
+  },
+
+  async deletePurchases(listId: string, purchaseIds: string[]) {
+    const purchasesStr = purchaseIds.join(',')
+    try {
+      const response = await instance.delete(
+        `/lists/${listId}/${purchasesStr}`,
         getConfig()
       )
       return response

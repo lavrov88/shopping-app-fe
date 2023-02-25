@@ -6,11 +6,19 @@ interface Props {
   color: string
 }
 const { purchase, color } = defineProps<Props>()
+const emit = defineEmits(['toggleChecked', 'deleteItem'])
+
+const onContextMenu = (e: Event) => {
+  e.preventDefault()
+  console.log('RIGHT CLICK')
+  emit('deleteItem', purchase)
+}
 </script>
 
 <template>
   <v-btn
     @click="$emit('toggleChecked', { ...purchase, checked: !purchase.checked })"
+    @contextmenu="onContextMenu"
     :variant="purchase.checked ? 'tonal' : 'flat'"
     rounded="lg"
     :color="color"
