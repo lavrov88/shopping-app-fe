@@ -1,29 +1,3 @@
-<script setup lang="ts">
-import { computed } from 'vue';
-import { useListsStore } from '../../../stores/listsStore';
-import { useSettingsStore } from '../../../stores/settingsStore';
-import { ListItem, PurchaseItem } from '../../../stores/listsStore';
-import ListItemPurchase from './list-item-purchase.vue'
-const listsStore = useListsStore()
-const settingsStore = useSettingsStore()
-
-interface Props {
-  list: ListItem
-}
-const { list } = defineProps<Props>()
-const isMinimized = computed(() => {
-  const minimized = settingsStore.userSettings?.minimizedLists.includes(list.id)
-  return minimized ? [] : [0]
-})
-
-const onTogglePuchaseChecked = (purchase: PurchaseItem) => {
-  listsStore.editPurchases(list.id, [purchase])
-}
-const onDeletePurchase = (purchase: PurchaseItem) => {
-  listsStore.deletePurchases(list.id, [purchase])
-}
-</script>
-
 <template>
   <v-expansion-panels v-model="isMinimized" multiple>
     <v-expansion-panel
@@ -47,11 +21,11 @@ const onDeletePurchase = (purchase: PurchaseItem) => {
             >
               <v-list>
                 <v-list-item
-                  v-for="(item, index) in 4"
-                  :key="index"
-                  :value="index"
+                  v-for="item in listMenuItems"
+                  @click="openManagePurchasesDialog"
+                  :key="item.name"
                 >
-                  <v-list-item-title>Menu item {{ index + 1 }}</v-list-item-title>
+                  <v-list-item-title>{{ item.name }}</v-list-item-title>
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -73,6 +47,40 @@ const onDeletePurchase = (purchase: PurchaseItem) => {
     </v-expansion-panel>
   </v-expansion-panels>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useListsStore } from '../../../stores/listsStore';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import { ListItem, PurchaseItem } from '../../../stores/listsStore';
+import ListItemPurchase from './list-item-purchase.vue'
+const listsStore = useListsStore()
+const settingsStore = useSettingsStore()
+
+interface Props {
+  list: ListItem
+}
+const { list } = defineProps<Props>()
+const isMinimized = computed(() => {
+  const minimized = settingsStore.userSettings?.minimizedLists.includes(list.id)
+  return minimized ? [] : [0]
+})
+
+const openManagePurchasesDialog = () => {
+  settingsStore.openPurchasesManageDialog(list.id)
+}
+
+const listMenuItems = [
+  { name: 'Edit purchases', icon: null, onClick: openManagePurchasesDialog },
+]
+
+const onTogglePuchaseChecked = (purchase: PurchaseItem) => {
+  listsStore.editPurchases(list.id, [purchase])
+}
+const onDeletePurchase = (purchase: PurchaseItem) => {
+  listsStore.deletePurchases(list.id, [purchase])
+}
+</script>
 
 <style>
 .list-item-inner > .v-expansion-panel-title {

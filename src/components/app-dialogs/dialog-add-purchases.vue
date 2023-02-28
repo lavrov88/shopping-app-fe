@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import { useListsStore } from '../../stores/listsStore';
 const listsStore = useListsStore()
 
-const lists = computed(() => listsStore.lists)
+const lists = computed(() => listsStore.sortedLists)
 const dialog = ref(false)
 const inputValue = ref('')
 const newPurchases = computed(() => {
@@ -39,7 +39,7 @@ const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
           </v-btn>
         </template>
 
-        <v-card class="add-new-popup">
+        <v-card class="add-new-popup" width="450">
           <v-card-text>
             <div class="add-new-popup__head_prompt">
               Enter a list of new products, then select the list to add them to.
@@ -61,7 +61,6 @@ const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
                 :key="list.id"
                 @click="onAddNewPurchases(list.id, newPurchases)"
                 :color="list.color"
-                variant="tonal"
                 class="add-new-popup__lists_button_item"
               >
                 {{ list.name }}

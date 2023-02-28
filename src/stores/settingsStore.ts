@@ -1,8 +1,8 @@
 import { AxiosResponse } from 'axios'
 import { defineStore } from 'pinia'
-import { authApi, settingsApi } from '../utils/api'
+import { authApi, settingsApi } from '../api/api'
 import { getRandom } from '../utils/common'
-import { LS } from '../utils/localStorage'
+import { LS } from '../api/localStorage'
 import { useListsStore } from './listsStore'
 
 export const useSettingsStore = defineStore('settingsStore', {
@@ -12,6 +12,10 @@ export const useSettingsStore = defineStore('settingsStore', {
     optionsMenuIsOpen: false,
     loginDialogIsOpen: false,
     listsManageDialogIsOpen: false,
+    purchasesManageDialog: {
+      isOpen: false,
+      listId: null as string | null,
+    },
 
     loginInProgress: false,
     isAuthorized: false,
@@ -19,17 +23,22 @@ export const useSettingsStore = defineStore('settingsStore', {
     userSettings: null as UserSettings | null,
   }),
   actions: {
-    addAlert(message: string, type: AlertTypes = 'error') {
-      const newAlert = {
-        id: getRandom('alert'),
-        type,
-        message
+
+    openPurchasesManageDialog(listId: string) {
+      this. purchasesManageDialog = {
+        isOpen: true,
+        listId
       }
-      this.alertsToShow = [ ...this.alertsToShow, newAlert ]
     },
-    removeAlert(id: string) {
-      this.alertsToShow = this.alertsToShow.filter(a => a.id !== id)
+
+    closePurchasesManageDialog() {
+      this. purchasesManageDialog = {
+        isOpen: false,
+        listId: null
+      }
     },
+
+    // AUTH
 
     async login(username: string, password: string) {
       this.loginInProgress = true
@@ -66,11 +75,48 @@ export const useSettingsStore = defineStore('settingsStore', {
       }
     },
 
+    // SETTINGS
+
     async getUserSettings() {
       const res = await settingsApi.getSettings() as AxiosResponse
       if (res.status === 200) {
         this.userSettings = res.data
       }
+    },
+
+    async updateListOrder(newListOrder: string[]) {
+      const originalListOrder = this.userSettings?.listOrder || []
+      let listOrderChanged = false
+
+      newListOrder.forEach((nItem, idx) => {
+        if (originalListOrder[idx] !== nItem) {
+          console.log(`differense! old: ${originalListOrder[idx]}, new: ${nItem}`)
+          listOrderChanged = true
+        }
+      })
+      if (!listOrderChanged) {
+        return
+      }
+
+      const res = await settingsApi.setSettings({ listOrder: newListOrder }) as AxiosResponse
+      if (res.status === 200 && this.userSettings) {
+        this.userSettings.listOrder = res.data.listOrder
+      }
+    },
+
+    // ALERTS
+
+    addAlert(message: string, type: AlertTypes = 'error') {
+      const newAlert = {
+        id: getRandom('alert'),
+        type,
+        message
+      }
+      this.alertsToShow = [ ...this.alertsToShow, newAlert ]
+    },
+
+    removeAlert(id: string) {
+      this.alertsToShow = this.alertsToShow.filter(a => a.id !== id)
     },
   },
 })

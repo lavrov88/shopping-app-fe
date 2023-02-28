@@ -1,6 +1,6 @@
 import { AxiosResponse } from 'axios'
 import { defineStore } from 'pinia'
-import { listsApi } from '../utils/api'
+import { listsApi } from '../api/api'
 import { useSettingsStore } from './settingsStore'
 
 export const useListsStore = defineStore('listsStore', {
@@ -8,6 +8,28 @@ export const useListsStore = defineStore('listsStore', {
     lists: [] as ListItem[],
     listsAreFetching: false
   }),
+
+  getters: {
+    sortedLists() {
+      const lists = [ ...this.lists ] as ListItem[]
+      const userSettings = useSettingsStore().userSettings
+      if (!userSettings || !userSettings.listOrder) {
+        return lists
+      }
+      const listsOrder = userSettings.listOrder
+
+      return lists.sort((a, b) => {
+        let aIndex = listsOrder.findIndex(lId => lId === a.id)
+        let bIndex = listsOrder.findIndex(lId => lId === b.id)
+
+        if (aIndex === -1) aIndex = 1000
+        if (bIndex === -1) bIndex = 1000
+
+        return aIndex - bIndex
+      })
+    }
+  },
+
   actions: {
 
     // LISTS
@@ -24,6 +46,24 @@ export const useListsStore = defineStore('listsStore', {
       }
       this.listsAreFetching = false
     },
+
+    // sortLists() {
+    //   const userSettings = useSettingsStore().userSettings
+    //   if (!userSettings || !userSettings.listOrder) {
+    //     return
+    //   }
+    //   const listsOrder = userSettings.listOrder
+
+    //   this.lists.sort((a, b) => {
+    //     let aIndex = listsOrder.findIndex(lId => lId === a.id)
+    //     let bIndex = listsOrder.findIndex(lId => lId === b.id)
+
+    //     if (aIndex === -1) aIndex = 1000
+    //     if (bIndex === -1) bIndex = 1000
+
+    //     return aIndex - bIndex
+    //   })
+    // },
 
     async editList({ id, name, color }: ListUpdateObject) {
       const data = { id } as ListUpdateObject
@@ -117,8 +157,9 @@ export const useListsStore = defineStore('listsStore', {
 
     async deletePurchases(listId: string, purchases: PurchaseItem[]) {
       const purchaseIds = purchases.map(p => p.id)
+      const purchasesStr = purchaseIds.join(',')
 
-      const res = await listsApi.deletePurchases(listId, purchaseIds) as AxiosResponse
+      const res = await listsApi.deletePurchases(listId, purchasesStr) as AxiosResponse
       if (res.status === 200) {
         const listIdx = this.lists.findIndex(list => list.id === listId)
         if (listIdx > -1) {

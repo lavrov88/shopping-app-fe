@@ -66,10 +66,6 @@ const onDelete = () => {
 .manage-lists-item {
   margin-bottom: 10px;
 }
-.manage-lists-item.to-delete {
-  opacity: 0.9;
-}
-
 .manage-lists-item-inner {
   display: flex;
   justify-content: space-between;

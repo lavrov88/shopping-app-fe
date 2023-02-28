@@ -1,14 +1,3 @@
-<script setup lang="ts">
-import { useSettingsStore } from './stores/settingsStore';
-import AppHeader from './components/app-header/app-header.vue'
-import AppMain from './components/app-main/app-main.vue'
-import AppNav from './components/app-nav/app-nav.vue'
-import AppAlerts from './components/app-alerts.vue';
-const settingsStore = useSettingsStore()
-
-settingsStore.checkLocalStorageAuth() // check localStorage auth after app started
-</script>
-
 <template>
   <v-layout>
     <app-alerts />
@@ -21,6 +10,23 @@ settingsStore.checkLocalStorageAuth() // check localStorage auth after app start
     </div>
   </v-layout>
 </template>
+
+<script setup lang="ts">
+import { useSettingsStore } from './stores/settingsStore';
+import AppHeader from './components/app-header/app-header.vue'
+import AppMain from './components/app-main/app-main.vue'
+import AppNav from './components/app-nav/app-nav.vue'
+import AppAlerts from './components/app-alerts.vue';
+const settingsStore = useSettingsStore()
+
+const initApp = () => {
+  settingsStore.checkLocalStorageAuth() // check localStorage auth after app started
+  if (settingsStore.isAuthorized) {
+    settingsStore.getUserSettings()
+  }
+}
+initApp()
+</script>
 
 <style scoped>
 .main-layout {

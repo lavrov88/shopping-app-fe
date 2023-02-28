@@ -1,15 +1,3 @@
-<script setup lang="ts">
-import ListItem from './list-item/list-item.vue';
-import AppMainAddDialog from './app-main-add-dialog.vue';
-import { useListsStore } from '../../stores/listsStore';
-import { computed } from 'vue';
-const listsStore = useListsStore()
-
-const lists = computed(() => listsStore.lists)
-const listsAreFetching = computed(() => listsStore.listsAreFetching)
-
-</script>
-
 <template>
   <v-main class="app-main">
     <div class="app-main-progressbar">
@@ -36,9 +24,24 @@ const listsAreFetching = computed(() => listsStore.listsAreFetching)
         <span>Open menu to create the first one.</span>
       </div>
     </div>
-    <app-main-add-dialog />
+    <dialog-add-purchases />
+    <dialog-manage-purchases />
   </v-main>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useListsStore } from '../../stores/listsStore';
+
+import ListItem from './list-item/list-item.vue';
+import DialogAddPurchases from '../app-dialogs/dialog-add-purchases.vue';
+import DialogManagePurchases from '../app-dialogs/dialog-manage-purchases/dialog-manage-purchases.vue';
+
+const listsStore = useListsStore()
+
+const lists = computed(() => listsStore.sortedLists)
+const listsAreFetching = computed(() => listsStore.listsAreFetching)
+</script>
 
 <style scoped>
 .app-main {
