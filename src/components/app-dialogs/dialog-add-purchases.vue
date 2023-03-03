@@ -1,26 +1,3 @@
-<script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useListsStore } from '../../stores/listsStore';
-const listsStore = useListsStore()
-
-const lists = computed(() => listsStore.sortedLists)
-const dialog = ref(false)
-const inputValue = ref('')
-const newPurchases = computed(() => {
-  return inputValue.value.split(',').map(i => i.trim())
-})
-
-const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
-  dialog.value = false
-  try {
-    await listsStore.addNewPurchases(listId, newPurchases)
-    inputValue.value = ''
-  } catch (e) {
-    // alert error
-  }
-}
-</script>
-
 <template>
     <div class="app-main-bottom">
       <v-dialog
@@ -32,7 +9,7 @@ const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
             v-bind="props"
             block
             prepend-icon="mdi-basket-plus-outline"
-            color="blue"
+            color="light-blue-darken-4"
             rounded="lg"
           >
             <strong>Add new goods</strong>
@@ -81,6 +58,29 @@ const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
       </v-dialog>
     </div>
 </template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import { useListsStore } from '../../stores/listsStore';
+const listsStore = useListsStore()
+
+const lists = computed(() => listsStore.sortedLists)
+const dialog = ref(false)
+const inputValue = ref('')
+const newPurchases = computed(() => {
+  return inputValue.value.split(',').map(i => i.trim())
+})
+
+const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
+  dialog.value = false
+  try {
+    await listsStore.addNewPurchases(listId, newPurchases)
+    inputValue.value = ''
+  } catch (e) {
+    // alert error
+  }
+}
+</script>
 
 <style scoped>
 .app-main-bottom {

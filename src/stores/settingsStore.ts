@@ -9,6 +9,7 @@ export const useSettingsStore = defineStore('settingsStore', {
   state: () =>({
     alertsToShow: [] as AlertToShow[],
 
+    appIsInitialized: false,
     optionsMenuIsOpen: false,
     loginDialogIsOpen: false,
     listsManageDialogIsOpen: false,
@@ -23,6 +24,17 @@ export const useSettingsStore = defineStore('settingsStore', {
     userSettings: null as UserSettings | null,
   }),
   actions: {
+
+    async initApp() {
+
+      this.checkLocalStorageAuth()
+      if (this.isAuthorized) {
+        const listsStore = useListsStore()
+
+        await Promise.all([ this.getUserSettings(), listsStore.getLists() ])
+        this.appIsInitialized = true
+      }
+    },
 
     openPurchasesManageDialog(listId: string) {
       this. purchasesManageDialog = {
@@ -69,9 +81,6 @@ export const useSettingsStore = defineStore('settingsStore', {
       if (LS.user && LS.user.token) {
         this.isAuthorized = true
         this.user = LS.user
-
-        const listsStore = useListsStore()
-        listsStore.getLists()
       }
     },
 
@@ -104,6 +113,21 @@ export const useSettingsStore = defineStore('settingsStore', {
       }
     },
 
+    async toggleMinimizeList(listId: string) {
+      if (!this.userSettings) {
+        return
+      }
+
+      const minimizedLists = this.userSettings.minimizedLists
+      if (minimizedLists.includes(listId)) {
+        this.userSettings.minimizedLists = minimizedLists.filter(ml => ml !== listId)
+      } else {
+        this.userSettings.minimizedLists.push(listId)
+      }
+
+      await settingsApi.setSettings({ minimizedLists: this.userSettings.minimizedLists })
+    },
+
     // ALERTS
 
     addAlert(message: string, type: AlertTypes = 'error') {
@@ -129,6 +153,11 @@ interface UserSettings {
   listOrder: string[]
   minimizedLists: string[]
   sharedListsRequests: string[]
+}
+export interface UserSettingsUpdateObject {
+  listOrder?: string[]
+  minimizedLists?: string[]
+  sharedListsRequests?: string[]
 }
 interface AlertToShow {
   id: string

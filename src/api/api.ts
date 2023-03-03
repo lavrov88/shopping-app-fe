@@ -1,4 +1,5 @@
-import { ListUpdateObject, PurchaseItem } from '../stores/listsStore';
+import { ListUpdateObject, PurchaseItem, PurchaseUpdateObject } from '../stores/listsStore';
+import { UserSettingsUpdateObject } from '../stores/settingsStore';
 import { del, get, post, put } from './base.api';
 
 export const authApi = {
@@ -15,11 +16,11 @@ export const listsApi = {
 
   // PURCHASES
   addNewPurchases: async (listId: string, purchaseNames: string[]) => post(`/lists/${listId}`, purchaseNames),
-  editPurchases: async (listId: string, purchases: PurchaseItem[]) => put( `/lists/${listId}`, purchases),
+  editPurchases: async (listId: string, purchases: PurchaseItem[] | PurchaseUpdateObject[]) => put( `/lists/${listId}`, purchases),
   deletePurchases: async (listId: string, purchasesStr: string) => del( `/lists/${listId}/${purchasesStr}`),
 }
 
 export const settingsApi = {
   getSettings: async () => get(`/user/settings`),
-  setSettings: async (payload: any) => put(`/user/settings`, payload),
+  setSettings: async (payload: UserSettingsUpdateObject) => put(`/user/settings`, payload),
 }

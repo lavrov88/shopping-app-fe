@@ -3,11 +3,11 @@
     v-model="dialogIsOpen"
     width="450"
   >
-    <v-card>
+    <v-card
+      :title="list?.name"
+      subtitle="List editing"
+    >
       <v-card-text>
-        <div class="manage-purchases-header">
-          <h3>Edit list "{{ list?.name }}"</h3>
-        </div>
 
         <draggable
           :list="temporaryPurchases"
@@ -23,15 +23,26 @@
               @name-changed="onItemNameChange"
               @delete="onItemDelete"
               :data="element"
+              :color="list?.color || ''"
+              itemType="purchase"
             />
           </template>
         </draggable>
 
         <div class="manage-lists-footer">
-          <v-btn @click="onAccept" block class="mt-2">
+          <v-btn
+            @click="onAccept"
+            color="blue"
+            style="width: 48%;"
+          >
             Accept
           </v-btn>
-          <v-btn color="primary" block @click="onDialogClose">
+          <v-btn
+            @click="onDialogClose"
+            variant="outlined"
+            color="blue"
+            style="width: 48%;"
+          >
             Back
           </v-btn>
         </div>
@@ -61,7 +72,7 @@ const mapPurchaseToEdititem = (p: PurchaseItem) => {
 }
 
 const listId = computed(() => settingsStore.purchasesManageDialog.listId)
-const list = computed(() => listsStore.lists.find(l => l.id === listId.value))
+const list = computed(() => listsStore.sortedLists.find(l => l.id === listId.value))
 const originalPurchases = computed(() => list.value ? list.value.items : [])
 let temporaryPurchases = reactive(originalPurchases.value.map(mapPurchaseToEdititem))
 
@@ -124,7 +135,7 @@ const onDialogClose = () => {
 }
 const onAccept = () => {
   updateSortOrder()
-  console.log(temporaryPurchases)
+  listsStore.updatePurchasesChanges(temporaryPurchases, listId.value as string)
   onDialogClose()
 }
 
@@ -135,7 +146,6 @@ watch(dialogIsOpen, () => {
     revertTemporaryPurchases()
   }
 })
-watch(originalPurchases, revertTemporaryPurchases)
 </script>
 
 <style scoped>
@@ -145,5 +155,12 @@ watch(originalPurchases, revertTemporaryPurchases)
 }
 .not-draggable {
   cursor: no-drop;
+}
+.manage-lists-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  padding-bottom: 10px;
 }
 </style>

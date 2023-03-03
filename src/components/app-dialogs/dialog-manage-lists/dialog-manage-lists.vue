@@ -3,11 +3,8 @@
     v-model="dialogIsOpen"
     width="450"
   >
-    <v-card>
+    <v-card title="Manage lists">
       <v-card-text>
-        <div class="manage-lists-header">
-          <h3>Manage lists</h3>
-        </div>
 
         <draggable
           :list="temporaryLists"
@@ -24,20 +21,40 @@
               @color-changed="onItemColorChange"
               @delete="onItemDelete"
               :data="element"
+              :color="element.color"
+              item-type="list"
             />
           </template>
         </draggable>
 
         <div class="manage-lists-footer">
-          <v-btn @click="onAddNewList" block class="mt-2">
-            Add new list
-          </v-btn>
-          <v-btn @click="onAcceptListsEdit" block class="mt-2">
-            Accept
-          </v-btn>
-          <v-btn color="primary" block @click="onDialogClose">
-            Back
-          </v-btn>
+          <div class="manage-lists-footer_add-new">
+            <v-btn
+              @click="onAddNewList"
+              color="green"
+              block
+              prepend-icon="mdi-plus"
+            >
+              Add new list
+            </v-btn>
+          </div>
+          <div class="manage-lists-footer_accept-back">
+            <v-btn
+              @click="onAcceptListsEdit"
+              color="blue"
+              style="width: 48%;"
+            >
+              Accept
+            </v-btn>
+            <v-btn
+              @click="onDialogClose"
+              variant="outlined"
+              color="blue"
+              style="width: 48%;"
+            >
+              Back
+            </v-btn>
+          </div>
         </div>
       </v-card-text>
     </v-card>
@@ -69,7 +86,11 @@ const revertTemporaryLists = () => {
 
 // OPEN AND CLOSE DIALOG
 
-const dialogIsOpen = computed(() => settingsStore.listsManageDialogIsOpen)
+// const dialogIsOpen = computed(() => settingsStore.listsManageDialogIsOpen)
+const dialogIsOpen = computed({
+  get: () => settingsStore.listsManageDialogIsOpen,
+  set: () => onDialogClose()
+})
 const onDialogClose = () => {
   revertTemporaryLists()
   settingsStore.listsManageDialogIsOpen = false
@@ -154,5 +175,15 @@ watch(originalLists, revertTemporaryLists)
 }
 .not-draggable {
   cursor: no-drop;
+}
+.manage-lists-footer_add-new {
+  padding-top: 20px;
+}
+.manage-lists-footer_accept-back {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 </style>

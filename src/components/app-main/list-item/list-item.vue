@@ -14,21 +14,30 @@
             <strong>{{ list.name }}</strong>
           </div>
           <div class="list-item-title__item right">
-            <v-icon icon="mdi-dots-horizontal" size="x-large" />
-            <v-menu
-              activator="parent"
-              location="left"
-            >
-              <v-list>
-                <v-list-item
-                  v-for="item in listMenuItems"
-                  @click="openManagePurchasesDialog"
-                  :key="item.name"
-                >
-                  <v-list-item-title>{{ item.name }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+            <v-badge
+              v-if="!isMinimized.length"
+              color="rgba(255,255,255,0.2)"
+              text-color="#fff"
+              :content="itemsCountString"
+              inline
+            ></v-badge>
+            <div class="list-item-title__toggle-menu">
+              <v-icon icon="mdi-dots-horizontal" size="x-large" />
+              <v-menu
+                activator="parent"
+                location="left"
+              >
+                <v-list>
+                  <v-list-item
+                    v-for="item in listMenuItems"
+                    @click="openManagePurchasesDialog"
+                    :key="item.name"
+                  >
+                    <v-list-item-title>{{ item.name }}</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </div>
           </div>
         </div>
       </template>
@@ -61,14 +70,26 @@ interface Props {
   list: ListItem
 }
 const { list } = defineProps<Props>()
-const isMinimized = computed(() => {
-  const minimized = settingsStore.userSettings?.minimizedLists.includes(list.id)
-  return minimized ? [] : [0]
+
+const isMinimized = computed({
+  get() {
+    const minimized = settingsStore.userSettings?.minimizedLists.includes(list.id)
+    return minimized ? [] : [0]
+  },
+
+  set() {
+    settingsStore.toggleMinimizeList(list.id)
+  }
 })
 
 const openManagePurchasesDialog = () => {
   settingsStore.openPurchasesManageDialog(list.id)
 }
+
+const itemsCountString = computed(() => {
+  const count = list.items.length
+  return `${count} ${count === 1 ? 'item' : 'items'}`
+})
 
 const listMenuItems = [
   { name: 'Edit purchases', icon: null, onClick: openManagePurchasesDialog },
@@ -105,6 +126,9 @@ const onDeletePurchase = (purchase: PurchaseItem) => {
 }
 .list-item-title__item.left {
   gap: 3px;
+}
+.list-item-title__item.right {
+  gap: 5px;
 }
 .purchases-list {
   display: flex;

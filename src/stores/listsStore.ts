@@ -18,16 +18,23 @@ export const useListsStore = defineStore('listsStore', {
       }
       const listsOrder = userSettings.listOrder
 
-      return lists.sort((a, b) => {
-        let aIndex = listsOrder.findIndex(lId => lId === a.id)
-        let bIndex = listsOrder.findIndex(lId => lId === b.id)
+      return lists
+        .sort((a, b) => {
+          let aIndex = listsOrder.findIndex(lId => lId === a.id)
+          let bIndex = listsOrder.findIndex(lId => lId === b.id)
 
-        if (aIndex === -1) aIndex = 1000
-        if (bIndex === -1) bIndex = 1000
+          if (aIndex === -1) aIndex = 1000
+          if (bIndex === -1) bIndex = 1000
 
-        return aIndex - bIndex
-      })
-    }
+          return aIndex - bIndex
+        })
+        .map(list => {
+          return {
+            ...list,
+            items: [ ...list.items ].sort((a, b) => a.sortRate - b.sortRate)
+          }
+        })
+    },
   },
 
   actions: {
@@ -46,24 +53,6 @@ export const useListsStore = defineStore('listsStore', {
       }
       this.listsAreFetching = false
     },
-
-    // sortLists() {
-    //   const userSettings = useSettingsStore().userSettings
-    //   if (!userSettings || !userSettings.listOrder) {
-    //     return
-    //   }
-    //   const listsOrder = userSettings.listOrder
-
-    //   this.lists.sort((a, b) => {
-    //     let aIndex = listsOrder.findIndex(lId => lId === a.id)
-    //     let bIndex = listsOrder.findIndex(lId => lId === b.id)
-
-    //     if (aIndex === -1) aIndex = 1000
-    //     if (bIndex === -1) bIndex = 1000
-
-    //     return aIndex - bIndex
-    //   })
-    // },
 
     async editList({ id, name, color }: ListUpdateObject) {
       const data = { id } as ListUpdateObject
@@ -135,6 +124,52 @@ export const useListsStore = defineStore('listsStore', {
 
     // PURCHASES
 
+    getSortedPurchases(listId: string) {
+      const list = this.lists.find(l => l.id === listId)
+      if (!list) {
+        return []
+      }
+
+      return [ ...list.items ].sort((a, b) => a.sortRate - b.sortRate)
+    },
+
+    async updatePurchasesChanges(temporaryPurchases: PurchaseUpdateObject[], listId: string) {
+      const list = this.lists.find(l => l.id === listId)
+
+      const purchasesToDelete = temporaryPurchases.filter(tp => tp.toDelete)
+
+      const purchasesToEdit = temporaryPurchases.filter(tp => {
+        if (tp.toDelete) {
+          return
+        }
+
+        if (!list) {
+          return
+        }
+
+        const originalPurchase = list.items.find(item => item.id === tp.id)
+        if (!originalPurchase) {
+          return
+        }
+
+        let hasChanges = false
+        const keysToCompare = [ 'name', 'sortRate' ] as ('name' | 'sortRate')[]
+        keysToCompare.forEach(key => {
+          if (originalPurchase[key] !== tp[key]) {
+            hasChanges = true
+          }
+        })
+        return hasChanges
+      })
+
+      if (purchasesToDelete.length) {
+        await this.deletePurchases(listId, purchasesToDelete)
+      }
+      if (purchasesToEdit.length) {
+        await this.editPurchases(listId, purchasesToEdit)
+      }
+    },
+
     async addNewPurchases(listId: string, purchaseNames: string[]) {
       const res = await listsApi.addNewPurchases(listId, purchaseNames) as AxiosResponse
       if (res.status === 200) {
@@ -145,7 +180,7 @@ export const useListsStore = defineStore('listsStore', {
       }
     },
 
-    async editPurchases(listId: string, purchases: PurchaseItem[]) {
+    async editPurchases(listId: string, purchases: PurchaseItem[] | PurchaseUpdateObject[]) {
       const res = await listsApi.editPurchases(listId, purchases) as AxiosResponse
       if (res.status === 200) {
         const listIdx = this.lists.findIndex(list => list.id === listId)
@@ -155,7 +190,7 @@ export const useListsStore = defineStore('listsStore', {
       }
     },
 
-    async deletePurchases(listId: string, purchases: PurchaseItem[]) {
+    async deletePurchases(listId: string, purchases: PurchaseItem[] | PurchaseUpdateObject[]) {
       const purchaseIds = purchases.map(p => p.id)
       const purchasesStr = purchaseIds.join(',')
 
@@ -195,4 +230,10 @@ export interface ListUpdateObject {
   name?: string
   color?: string
   toDelete?: boolean
+}
+export interface PurchaseUpdateObject {
+  id: string
+  name: string
+  sortRate: number
+  toDelete: boolean
 }
