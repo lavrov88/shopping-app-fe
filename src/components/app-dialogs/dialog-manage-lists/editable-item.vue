@@ -10,7 +10,6 @@
             <v-icon icon="mdi-swap-vertical" size="large" />
           </div>
           <div class="editable-item-center">
-            <!-- <div class="editable-item-center__name"></div> -->
             <v-text-field
               @update:modelValue="onChangeName"
               v-model="nameModel"

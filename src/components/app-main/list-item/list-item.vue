@@ -41,10 +41,18 @@
           </div>
         </div>
       </template>
+
       <template #text>
+        <v-progress-linear
+          v-if="progressBarIsVisible"
+          :model-value="progressBarValue"
+          :style="progressBarStyle"
+          :height="6"
+          :color="list.color"
+        />
         <div class="purchases-list">
           <list-item-purchase
-            v-for="purchase in list.items"
+            v-for="purchase in itemsSortedAccordingToChecked"
             :key="purchase.id"
             @toggleChecked="onTogglePuchaseChecked"
             @deleteItem="onDeletePurchase"
@@ -58,18 +66,102 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useListsStore } from '../../../stores/listsStore';
 import { useSettingsStore } from '../../../stores/settingsStore';
 import { ListItem, PurchaseItem } from '../../../stores/listsStore';
 import ListItemPurchase from './list-item-purchase.vue'
+import { getIdsSortedAccordingToChecked, sortPurchasesWithIdsArray } from '../../../utils/common';
+import { SORT_TIMEOUT } from '../../../utils/constants';
+
 const listsStore = useListsStore()
 const settingsStore = useSettingsStore()
-
-interface Props {
-  list: ListItem
-}
 const { list } = defineProps<Props>()
+
+// PURCHASES SORTING
+
+const listIdx = computed(() => listsStore.lists.findIndex(l => l.id === list.id))
+const currentListItems = computed(() => {
+  return listsStore.lists[listIdx.value] && listsStore.lists[listIdx.value].items || []
+})
+
+const sortedIds = ref(getIdsSortedAccordingToChecked(currentListItems.value))
+const sortDelayTimer = ref(0)
+const sortDelayTimerStart = ref(0)
+const sortDelayTimerEnd = ref(0)
+
+const itemsSortedAccordingToChecked = computed(() => {
+  return [ ...currentListItems.value ]
+    .sort((a, b) => sortPurchasesWithIdsArray(a, b, sortedIds.value))
+})
+
+const startReorderTimer = () => {
+  const currentSortedIds = sortedIds
+  let newSortedIds = getIdsSortedAccordingToChecked(currentListItems.value)
+  let orderWasChanged = false
+
+  newSortedIds.forEach((nsi, nsiIdx) => {
+    if (currentSortedIds.value[nsiIdx] !== nsi) {
+      orderWasChanged = true
+    }
+  })
+
+  if (orderWasChanged) {
+    clearTimeout(sortDelayTimer.value)
+    sortDelayTimerStart.value = +new Date()
+    sortDelayTimerEnd.value = sortDelayTimerStart.value + SORT_TIMEOUT
+
+    sortDelayTimer.value = setTimeout(() => {
+      // refresh sorted ids in case it have changed during timer's period
+      newSortedIds = getIdsSortedAccordingToChecked(currentListItems.value)
+      sortedIds.value = newSortedIds
+    }, SORT_TIMEOUT);
+  }
+}
+
+watch(currentListItems.value, startReorderTimer)
+
+// SORTING PROGRESS BAR
+
+const progressBarStyle = {
+  position: 'absolute',
+  top: '40px'
+}
+const progressBarValue = ref(0)
+const progressBarInterval = ref(0)
+const progressBarIsVisible = ref(false)
+
+watch(sortDelayTimer, () => {
+  clearInterval(progressBarInterval.value)
+  progressBarValue.value = 0
+  progressBarIsVisible.value = true
+
+  progressBarInterval.value = setInterval(() => {
+    const start = sortDelayTimerStart.value
+    const current = (+new Date()) - start
+    const end = sortDelayTimerEnd.value - start
+
+    if (current > end) {
+      clearInterval(progressBarInterval.value)
+      progressBarIsVisible.value = false
+      progressBarValue.value = 0
+    }
+
+    progressBarValue.value = current * 100 / ( SORT_TIMEOUT - 300 )
+  }, 50)
+})
+
+// PURCHASES ACTIONS
+
+const onTogglePuchaseChecked = (purchase: PurchaseItem) => {
+  listsStore.togglePurchasesCheck(list.id, [purchase])
+  startReorderTimer()
+}
+const onDeletePurchase = (purchase: PurchaseItem) => {
+  listsStore.deletePurchases(list.id, [purchase])
+}
+
+// HEADER, MINIMIZE
 
 const isMinimized = computed({
   get() {
@@ -82,32 +174,31 @@ const isMinimized = computed({
   }
 })
 
-const openManagePurchasesDialog = () => {
-  settingsStore.openPurchasesManageDialog(list.id)
-}
-
 const itemsCountString = computed(() => {
   const count = list.items.length
   return `${count} ${count === 1 ? 'item' : 'items'}`
 })
 
+// LIST MENU
+
+const openManagePurchasesDialog = () => {
+  settingsStore.openPurchasesManageDialog(list.id)
+}
+
 const listMenuItems = [
   { name: 'Edit purchases', icon: null, onClick: openManagePurchasesDialog },
 ]
 
-const onTogglePuchaseChecked = (purchase: PurchaseItem) => {
-  listsStore.editPurchases(list.id, [purchase])
-}
-const onDeletePurchase = (purchase: PurchaseItem) => {
-  listsStore.deletePurchases(list.id, [purchase])
+// TYPES
+
+interface Props {
+  list: ListItem
 }
 </script>
 
 <style>
 .list-item-inner > .v-expansion-panel-title {
   min-height: 40px !important;
-  /* padding-top: 0;
-  padding-bottom: 0; */
   padding: 0 10px;
 }
 .list-item-inner .v-expansion-panel-text__wrapper {

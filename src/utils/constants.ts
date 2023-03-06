@@ -1,4 +1,7 @@
 export const API_URL = 'http://localhost:5000'
+export const SORT_TIMEOUT = 3000
+
+// COLORS
 
 export const COLORS = {
   BLUE: 'blue',

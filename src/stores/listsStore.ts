@@ -6,7 +6,8 @@ import { useSettingsStore } from './settingsStore'
 export const useListsStore = defineStore('listsStore', {
   state: () => ({
     lists: [] as ListItem[],
-    listsAreFetching: false
+    listsAreFetching: false,
+    listUpdateCounter: 0,
   }),
 
   getters: {
@@ -46,7 +47,6 @@ export const useListsStore = defineStore('listsStore', {
       const res = await listsApi.getLists() as AxiosResponse
       if (res.status === 200) {
         this.lists = res.data
-        this.listsAreFetching = false
       } else {
         const settingsStore = useSettingsStore()
         settingsStore.addAlert(res.statusText, 'error')
@@ -124,15 +124,6 @@ export const useListsStore = defineStore('listsStore', {
 
     // PURCHASES
 
-    getSortedPurchases(listId: string) {
-      const list = this.lists.find(l => l.id === listId)
-      if (!list) {
-        return []
-      }
-
-      return [ ...list.items ].sort((a, b) => a.sortRate - b.sortRate)
-    },
-
     async updatePurchasesChanges(temporaryPurchases: PurchaseUpdateObject[], listId: string) {
       const list = this.lists.find(l => l.id === listId)
 
@@ -180,7 +171,31 @@ export const useListsStore = defineStore('listsStore', {
       }
     },
 
-    async editPurchases(listId: string, purchases: PurchaseItem[] | PurchaseUpdateObject[]) {
+    async togglePurchasesCheck(listId: string, purchases: PurchaseItem[]) {
+
+      // Local update
+      const listIdx = this.lists.findIndex(l => l.id === listId)
+      const list = this.lists[listIdx]
+      if (list) {
+        let localListPurchases = list.items
+        purchases.forEach(purchase => {
+          const purchaseIdx = localListPurchases.findIndex(llp => llp.id === purchase.id)
+          if (purchaseIdx === -1) {
+            return
+          }
+            this.lists[listIdx].items[purchaseIdx].checked = purchase.checked
+        })
+      }
+
+      // Server update
+      const res = await listsApi.editPurchases(listId, purchases) as AxiosResponse
+      if (res.status >= 300) {
+        const settingsStore = useSettingsStore()
+        settingsStore.addAlert(res.statusText, 'error')
+      }
+    },
+
+    async editPurchases(listId: string, purchases: PurchaseUpdateObject[]) {
       const res = await listsApi.editPurchases(listId, purchases) as AxiosResponse
       if (res.status === 200) {
         const listIdx = this.lists.findIndex(list => list.id === listId)
