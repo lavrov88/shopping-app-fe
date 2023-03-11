@@ -2,19 +2,26 @@
   <v-main class="app-main">
     <div class="app-main-progressbar">
       <v-progress-linear
-        v-if="listsAreFetching"
+        v-if="isFetching"
         :height="6"
         color="blue"
         indeterminate
       />
     </div>
-    <div v-if="lists.length" class="list-items">
-      <list-item
-        v-for="list in lists"
-        :key="list.id"
-        :list="list"
-      />
-    </div>
+    <transition-group
+      v-if="listIds.length"
+      name="list-items"
+      tag="div"
+      class="list-items"
+    >
+      <div
+        v-for="listId in listIds"
+        :key="listId"
+        class="list-item-wrapper"
+      >
+        <list-item :listId="listId" />
+      </div>
+    </transition-group>
     <div v-else class="list-items-empty">
       <div>
         <v-icon size="48" color="grey" icon="mdi-shopping-outline" />
@@ -32,15 +39,17 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useListsStore } from '../../stores/listsStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 
 import ListItem from './list-item/list-item.vue';
 import DialogAddPurchases from '../app-dialogs/dialog-add-purchases.vue';
 import DialogManagePurchases from '../app-dialogs/dialog-manage-purchases/dialog-manage-purchases.vue';
 
 const listsStore = useListsStore()
+const settingsStore = useSettingsStore()
 
-const lists = computed(() => listsStore.sortedLists)
-const listsAreFetching = computed(() => listsStore.listsAreFetching)
+let listIds = computed(() => listsStore.sortedLists.map(l => l.id))
+const isFetching = computed(() => settingsStore.anyDataIsFetching)
 </script>
 
 <style scoped>
@@ -67,5 +76,22 @@ const listsAreFetching = computed(() => listsStore.listsAreFetching)
   display: flex;
   justify-content: center;
   gap: 20px;
+}
+
+
+/* TRANSITION ANIMATION */
+
+.list-item-wrapper {
+  transition: all 0.5s ease;
+}
+
+.list-items-enter-from,
+.list-items-leave-to {
+  opacity: 0;
+  transform: scale(0);
+}
+
+.list-items-leave-active {
+  position: absolute;
 }
 </style>

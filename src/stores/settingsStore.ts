@@ -22,11 +22,26 @@ export const useSettingsStore = defineStore('settingsStore', {
     isAuthorized: false,
     user: null as UserData | null,
     userSettings: null as UserSettings | null,
+    settingsFetchingStatuses: {
+      updateListOrder: false,
+      toggleMinimizeList: false,
+    }
   }),
+
+  getters: {
+    settingsDataIsFetching(): boolean {
+      const settingsFetchingValues = Object.values(this.settingsFetchingStatuses)
+      return settingsFetchingValues.includes(true)
+    },
+
+    anyDataIsFetching(): boolean {
+      const listDataIsFetching = useListsStore().listsDataIsFetching
+      return listDataIsFetching || this.settingsDataIsFetching
+    }
+  },
+
   actions: {
-
     async initApp() {
-
       this.checkLocalStorageAuth()
       if (this.isAuthorized) {
         const listsStore = useListsStore()
@@ -99,7 +114,6 @@ export const useSettingsStore = defineStore('settingsStore', {
 
       newListOrder.forEach((nItem, idx) => {
         if (originalListOrder[idx] !== nItem) {
-          console.log(`differense! old: ${originalListOrder[idx]}, new: ${nItem}`)
           listOrderChanged = true
         }
       })
@@ -107,7 +121,9 @@ export const useSettingsStore = defineStore('settingsStore', {
         return
       }
 
+      this.settingsFetchingStatuses.updateListOrder = true
       const res = await settingsApi.setSettings({ listOrder: newListOrder }) as AxiosResponse
+      this.settingsFetchingStatuses.updateListOrder = false
       if (res.status === 200 && this.userSettings) {
         this.userSettings.listOrder = res.data.listOrder
       }
@@ -125,7 +141,9 @@ export const useSettingsStore = defineStore('settingsStore', {
         this.userSettings.minimizedLists.push(listId)
       }
 
+      this.settingsFetchingStatuses.toggleMinimizeList = true
       await settingsApi.setSettings({ minimizedLists: this.userSettings.minimizedLists })
+      this.settingsFetchingStatuses.toggleMinimizeList = false
     },
 
     // ALERTS

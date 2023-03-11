@@ -147,13 +147,19 @@ const onItemDelete = (payload: { id: string, value: boolean }) => {
 // DRAG AND DROP
 
 const dragging = ref(false)
-const listOrder = computed(() => temporaryLists.map(tl => tl.id))
+let listOrder = temporaryLists.map(tl => tl.id)
+
+watch(dragging, (newValue) => {
+  if (!newValue) {
+    listOrder = temporaryLists.map(tl => tl.id)
+  }
+})
 
 // ACCEPT
 
 const onAcceptListsEdit = () => {
   listsStore.updateListsChanges(temporaryLists)
-  settingsStore.updateListOrder(listOrder.value)
+  settingsStore.updateListOrder(listOrder)
   onDialogClose()
 }
 

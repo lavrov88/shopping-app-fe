@@ -133,10 +133,11 @@ const dialogIsOpen = computed({
 const onDialogClose = () => {
   settingsStore.closePurchasesManageDialog()
 }
-const onAccept = () => {
+const onAccept = async () => {
+  const id = listId.value
   updateSortOrder()
-  listsStore.updatePurchasesChanges(temporaryPurchases, listId.value as string)
   onDialogClose()
+  listsStore.updatePurchasesChanges(temporaryPurchases, id as string)
 }
 
 // WATCHERS

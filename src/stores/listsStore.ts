@@ -6,8 +6,16 @@ import { useSettingsStore } from './settingsStore'
 export const useListsStore = defineStore('listsStore', {
   state: () => ({
     lists: [] as ListItem[],
-    listsAreFetching: false,
-    listUpdateCounter: 0,
+    listsFetchingStatuses: {
+      getLists: false,
+      editList: false,
+      createList: false,
+      deleteList: false,
+      addNewPurchases: false,
+      togglePurchasesCheckRemotely: false,
+      editPurchases: false,
+      deletePurchases: false,
+    },
   }),
 
   getters: {
@@ -36,6 +44,11 @@ export const useListsStore = defineStore('listsStore', {
           }
         })
     },
+
+    listsDataIsFetching(): boolean {
+      const listsFetchingValues = Object.values(this.listsFetchingStatuses)
+      return listsFetchingValues.includes(true)
+    }
   },
 
   actions: {
@@ -43,7 +56,7 @@ export const useListsStore = defineStore('listsStore', {
     // LISTS
 
     async getLists() {
-      this.listsAreFetching = true
+      this.listsFetchingStatuses.getLists = true
       const res = await listsApi.getLists() as AxiosResponse
       if (res.status === 200) {
         this.lists = res.data
@@ -51,7 +64,7 @@ export const useListsStore = defineStore('listsStore', {
         const settingsStore = useSettingsStore()
         settingsStore.addAlert(res.statusText, 'error')
       }
-      this.listsAreFetching = false
+      this.listsFetchingStatuses.getLists = false
     },
 
     async editList({ id, name, color }: ListUpdateObject) {
@@ -59,7 +72,9 @@ export const useListsStore = defineStore('listsStore', {
       if (name) data.name = name
       if (color) data.color = color
 
+      this.listsFetchingStatuses.editList = true
       const res = await listsApi.editList(data) as AxiosResponse
+      this.listsFetchingStatuses.editList = false
       if (res.status === 200) {
         this.lists = this.lists.map(list => {
           if (list.id === id) {
@@ -71,14 +86,18 @@ export const useListsStore = defineStore('listsStore', {
     },
 
     async createList(payload: { name: string, color: string }) {
+      this.listsFetchingStatuses.createList = true
       const res = await listsApi.createList(payload)
+      this.listsFetchingStatuses.createList = false
       if (res.status === 200) {
         this.getLists()
       }
     },
 
     async deleteList(listId: string) {
+      this.listsFetchingStatuses.deleteList = true
       const res = await listsApi.deleteList(listId)
+      this.listsFetchingStatuses.deleteList = false
       if (res.status === 200) {
         this.lists = this.lists.filter(list => list.id !== listId)
       }
@@ -162,7 +181,9 @@ export const useListsStore = defineStore('listsStore', {
     },
 
     async addNewPurchases(listId: string, purchaseNames: string[]) {
+      this.listsFetchingStatuses.addNewPurchases = true
       const res = await listsApi.addNewPurchases(listId, purchaseNames) as AxiosResponse
+      this.listsFetchingStatuses.addNewPurchases = false
       if (res.status === 200) {
         const listIdx = this.lists.findIndex(list => list.id === listId)
         if (listIdx > -1) {
@@ -171,9 +192,7 @@ export const useListsStore = defineStore('listsStore', {
       }
     },
 
-    async togglePurchasesCheck(listId: string, purchases: PurchaseItem[]) {
-
-      // Local update
+    togglePurchasesCheckLocally(listId: string, purchases: PurchaseItem[]) {
       const listIdx = this.lists.findIndex(l => l.id === listId)
       const list = this.lists[listIdx]
       if (list) {
@@ -186,9 +205,17 @@ export const useListsStore = defineStore('listsStore', {
             this.lists[listIdx].items[purchaseIdx].checked = purchase.checked
         })
       }
+    },
 
-      // Server update
-      const res = await listsApi.editPurchases(listId, purchases) as AxiosResponse
+    async togglePurchasesCheckRemotely(listId: string) {
+      const list = this.lists.find(l => l.id === listId)
+      if (!list) {
+        return
+      }
+
+      this.listsFetchingStatuses.togglePurchasesCheckRemotely = true
+      const res = await listsApi.editPurchases(listId, list.items) as AxiosResponse
+      this.listsFetchingStatuses.togglePurchasesCheckRemotely = false
       if (res.status >= 300) {
         const settingsStore = useSettingsStore()
         settingsStore.addAlert(res.statusText, 'error')
@@ -196,7 +223,9 @@ export const useListsStore = defineStore('listsStore', {
     },
 
     async editPurchases(listId: string, purchases: PurchaseUpdateObject[]) {
+      this.listsFetchingStatuses.editPurchases = true
       const res = await listsApi.editPurchases(listId, purchases) as AxiosResponse
+      this.listsFetchingStatuses.editPurchases = false
       if (res.status === 200) {
         const listIdx = this.lists.findIndex(list => list.id === listId)
         if (listIdx > -1) {
@@ -209,7 +238,9 @@ export const useListsStore = defineStore('listsStore', {
       const purchaseIds = purchases.map(p => p.id)
       const purchasesStr = purchaseIds.join(',')
 
+      this.listsFetchingStatuses.deletePurchases = true
       const res = await listsApi.deletePurchases(listId, purchasesStr) as AxiosResponse
+      this.listsFetchingStatuses.deletePurchases = false
       if (res.status === 200) {
         const listIdx = this.lists.findIndex(list => list.id === listId)
         if (listIdx > -1) {

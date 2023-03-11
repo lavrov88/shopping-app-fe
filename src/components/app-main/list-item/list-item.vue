@@ -50,7 +50,11 @@
           :height="6"
           :color="list.color"
         />
-        <div class="purchases-list">
+        <transition-group
+          name="purchases-list"
+          tag="div"
+          class="purchases-list"
+        >
           <list-item-purchase
             v-for="purchase in itemsSortedAccordingToChecked"
             :key="purchase.id"
@@ -59,7 +63,7 @@
             :purchase="purchase"
             :color="list.color"
           />
-        </div>
+        </transition-group>
       </template>
     </v-expansion-panel>
   </v-expansion-panels>
@@ -69,18 +73,19 @@
 import { computed, ref, watch } from 'vue';
 import { useListsStore } from '../../../stores/listsStore';
 import { useSettingsStore } from '../../../stores/settingsStore';
-import { ListItem, PurchaseItem } from '../../../stores/listsStore';
+import { PurchaseItem } from '../../../stores/listsStore';
 import ListItemPurchase from './list-item-purchase.vue'
 import { getIdsSortedAccordingToChecked, sortPurchasesWithIdsArray } from '../../../utils/common';
 import { SORT_TIMEOUT } from '../../../utils/constants';
 
 const listsStore = useListsStore()
 const settingsStore = useSettingsStore()
-const { list } = defineProps<Props>()
+const { listId } = defineProps<Props>()
 
 // PURCHASES SORTING
 
-const listIdx = computed(() => listsStore.lists.findIndex(l => l.id === list.id))
+const listIdx = computed(() => listsStore.lists.findIndex(l => l.id === listId))
+const list = computed(() => listsStore.lists[listIdx.value])
 const currentListItems = computed(() => {
   return listsStore.lists[listIdx.value] && listsStore.lists[listIdx.value].items || []
 })
@@ -95,10 +100,19 @@ const itemsSortedAccordingToChecked = computed(() => {
     .sort((a, b) => sortPurchasesWithIdsArray(a, b, sortedIds.value))
 })
 
+const refreshSortOrder = () => {
+  const currentSortOrderIds = getIdsSortedAccordingToChecked(currentListItems.value)
+  sortedIds.value = currentSortOrderIds
+}
+
 const startReorderTimer = () => {
   const currentSortedIds = sortedIds
   let newSortedIds = getIdsSortedAccordingToChecked(currentListItems.value)
   let orderWasChanged = false
+
+  clearTimeout(sortDelayTimer.value)
+  sortDelayTimerStart.value = +new Date()
+  sortDelayTimerEnd.value = sortDelayTimerStart.value + SORT_TIMEOUT
 
   newSortedIds.forEach((nsi, nsiIdx) => {
     if (currentSortedIds.value[nsiIdx] !== nsi) {
@@ -107,19 +121,14 @@ const startReorderTimer = () => {
   })
 
   if (orderWasChanged) {
-    clearTimeout(sortDelayTimer.value)
-    sortDelayTimerStart.value = +new Date()
-    sortDelayTimerEnd.value = sortDelayTimerStart.value + SORT_TIMEOUT
-
     sortDelayTimer.value = setTimeout(() => {
-      // refresh sorted ids in case it have changed during timer's period
-      newSortedIds = getIdsSortedAccordingToChecked(currentListItems.value)
-      sortedIds.value = newSortedIds
-    }, SORT_TIMEOUT);
+      refreshSortOrder()
+      listsStore.togglePurchasesCheckRemotely(listId)
+    }, SORT_TIMEOUT)
   }
 }
 
-watch(currentListItems.value, startReorderTimer)
+watch(() => currentListItems.value, refreshSortOrder)
 
 // SORTING PROGRESS BAR
 
@@ -154,35 +163,35 @@ watch(sortDelayTimer, () => {
 // PURCHASES ACTIONS
 
 const onTogglePuchaseChecked = (purchase: PurchaseItem) => {
-  listsStore.togglePurchasesCheck(list.id, [purchase])
+  listsStore.togglePurchasesCheckLocally(listId, [purchase])
   startReorderTimer()
 }
 const onDeletePurchase = (purchase: PurchaseItem) => {
-  listsStore.deletePurchases(list.id, [purchase])
+  listsStore.deletePurchases(listId, [purchase])
 }
 
 // HEADER, MINIMIZE
 
 const isMinimized = computed({
   get() {
-    const minimized = settingsStore.userSettings?.minimizedLists.includes(list.id)
+    const minimized = settingsStore.userSettings?.minimizedLists.includes(listId)
     return minimized ? [] : [0]
   },
 
   set() {
-    settingsStore.toggleMinimizeList(list.id)
+    settingsStore.toggleMinimizeList(listId)
   }
 })
 
 const itemsCountString = computed(() => {
-  const count = list.items.length
+  const count = list.value.items.length
   return `${count} ${count === 1 ? 'item' : 'items'}`
 })
 
 // LIST MENU
 
 const openManagePurchasesDialog = () => {
-  settingsStore.openPurchasesManageDialog(list.id)
+  settingsStore.openPurchasesManageDialog(listId)
 }
 
 const listMenuItems = [
@@ -192,7 +201,7 @@ const listMenuItems = [
 // TYPES
 
 interface Props {
-  list: ListItem
+  listId: string
 }
 </script>
 
@@ -225,5 +234,21 @@ interface Props {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+/* TRANSITION ANIMATION */
+
+.purchases-list-item {
+  transition: all 0.8s ease;
+}
+
+.purchases-list-enter-from,
+.purchases-list-leave-to {
+  opacity: 0;
+  transform: scale(0);
+}
+
+.purchases-list-leave-active {
+  position: absolute;
 }
 </style>
