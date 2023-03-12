@@ -21,23 +21,7 @@
               :content="itemsCountString"
               inline
             ></v-badge>
-            <div class="list-item-title__toggle-menu">
-              <v-icon icon="mdi-dots-horizontal" size="x-large" />
-              <v-menu
-                activator="parent"
-                location="left"
-              >
-                <v-list>
-                  <v-list-item
-                    v-for="item in listMenuItems"
-                    @click="openManagePurchasesDialog"
-                    :key="item.name"
-                  >
-                    <v-list-item-title>{{ item.name }}</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </div>
+            <list-item-menu :listId="listId" />
           </div>
         </div>
       </template>
@@ -59,9 +43,11 @@
             v-for="purchase in itemsSortedAccordingToChecked"
             :key="purchase.id"
             @toggleChecked="onTogglePuchaseChecked"
+            @renameItem="onRenameItem"
             @deleteItem="onDeletePurchase"
-            :purchase="purchase"
+            :purchaseId="purchase.id"
             :color="list.color"
+            :listId="listId"
           />
         </transition-group>
       </template>
@@ -74,9 +60,11 @@ import { computed, ref, watch } from 'vue';
 import { useListsStore } from '../../../stores/listsStore';
 import { useSettingsStore } from '../../../stores/settingsStore';
 import { PurchaseItem } from '../../../stores/listsStore';
-import ListItemPurchase from './list-item-purchase.vue'
 import { getIdsSortedAccordingToChecked, sortPurchasesWithIdsArray } from '../../../utils/common';
 import { SORT_TIMEOUT } from '../../../utils/constants';
+
+import ListItemPurchase from './list-item-purchase.vue'
+import ListItemMenu from './list-item-menu.vue';
 
 const listsStore = useListsStore()
 const settingsStore = useSettingsStore()
@@ -120,11 +108,14 @@ const startReorderTimer = () => {
     }
   })
 
+  // if order was changed, check purchase remotely after timer, else procceed immediately
   if (orderWasChanged) {
     sortDelayTimer.value = setTimeout(() => {
       refreshSortOrder()
       listsStore.togglePurchasesCheckRemotely(listId)
     }, SORT_TIMEOUT)
+  } else {
+    listsStore.togglePurchasesCheckRemotely(listId)
   }
 }
 
@@ -166,6 +157,9 @@ const onTogglePuchaseChecked = (purchase: PurchaseItem) => {
   listsStore.togglePurchasesCheckLocally(listId, [purchase])
   startReorderTimer()
 }
+const onRenameItem = ({ purchase, name }: {purchase: PurchaseItem, name: string}) => {
+  listsStore.renamePurchase(listId, purchase, name)
+}
 const onDeletePurchase = (purchase: PurchaseItem) => {
   listsStore.deletePurchases(listId, [purchase])
 }
@@ -187,16 +181,6 @@ const itemsCountString = computed(() => {
   const count = list.value.items.length
   return `${count} ${count === 1 ? 'item' : 'items'}`
 })
-
-// LIST MENU
-
-const openManagePurchasesDialog = () => {
-  settingsStore.openPurchasesManageDialog(listId)
-}
-
-const listMenuItems = [
-  { name: 'Edit purchases', icon: null, onClick: openManagePurchasesDialog },
-]
 
 // TYPES
 

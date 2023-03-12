@@ -228,25 +228,72 @@ export const useListsStore = defineStore('listsStore', {
       this.listsFetchingStatuses.editPurchases = false
       if (res.status === 200) {
         const listIdx = this.lists.findIndex(list => list.id === listId)
-        if (listIdx > -1) {
+        if (listIdx > -1 && res.data.items) {
           this.lists[listIdx].items = res.data.items
         }
       }
     },
 
+    moveToAnotherList(listId: string, purchase: PurchaseItem, newListId: string) {
+      this.addNewPurchases(newListId, [ purchase.name ])
+      this.deletePurchases(listId, [ purchase ])
+      // TODO: if purchase was checked, check new purchase after adding to list (last item in array)
+    },
+
+    renamePurchase(listId: string, purchase: PurchaseItem, name: string) {
+      const { id, sortRate } = purchase
+      const purchaseUpdate = {
+        id,
+        sortRate,
+        name,
+        toDelete: false
+      }
+
+      this.editPurchases(listId, [ purchaseUpdate ])
+    },
+
     async deletePurchases(listId: string, purchases: PurchaseItem[] | PurchaseUpdateObject[]) {
-      const purchaseIds = purchases.map(p => p.id)
-      const purchasesStr = purchaseIds.join(',')
+      const purchasesIdsStr = purchases.map(p => p.id).join(',')
 
       this.listsFetchingStatuses.deletePurchases = true
-      const res = await listsApi.deletePurchases(listId, purchasesStr) as AxiosResponse
+      const res = await listsApi.deletePurchases(listId, purchasesIdsStr) as AxiosResponse
       this.listsFetchingStatuses.deletePurchases = false
+
       if (res.status === 200) {
         const listIdx = this.lists.findIndex(list => list.id === listId)
         if (listIdx > -1) {
           this.lists[listIdx].items = res.data.items
         }
       }
+    },
+
+    deleteCheckedPurchasesInList(listId: string) {
+      const list = this.lists.find(l => l.id === listId)
+      if (!list) {
+        return
+      }
+
+      const checkedPurchases = list.items.filter(purchase => purchase.checked)
+      if (!checkedPurchases.length) {
+        return
+      }
+
+      this.deletePurchases(listId, checkedPurchases)
+    },
+
+    deleteCheckedPurchasesInAllLists() {
+      this.lists.forEach(l => {
+        this.deleteCheckedPurchasesInList(l.id)
+      })
+    },
+
+    deleteAllPurchasesInList(listId: string) {
+      const list = this.lists.find(l => l.id === listId)
+      if (!list || !list.items.length) {
+        return
+      }
+
+      this.deletePurchases(listId, list.items)
     },
   },
 })

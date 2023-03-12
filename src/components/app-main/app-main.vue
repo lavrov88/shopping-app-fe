@@ -1,12 +1,12 @@
 <template>
   <v-main class="app-main">
     <div class="app-main-progressbar">
-      <v-progress-linear
+      <!-- <v-progress-linear
         v-if="isFetching"
         :height="6"
         color="blue"
         indeterminate
-      />
+      /> -->
     </div>
     <transition-group
       v-if="listIds.length"

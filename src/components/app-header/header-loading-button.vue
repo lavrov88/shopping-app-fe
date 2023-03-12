@@ -67,7 +67,7 @@ const onUpdateClick = () => {
   height: 48px;
 }
 .rotate {
-  animation: 2s linear infinite rotate;
+  animation: 1.5s linear infinite rotate;
 }
 .absolute {
   position: absolute;
