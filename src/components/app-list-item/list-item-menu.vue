@@ -55,8 +55,8 @@
 </template>
 
 <script setup lang="ts">
-import { useSettingsStore } from '../../../stores/settingsStore';
-import { useListsStore } from '../../../stores/listsStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { useListsStore } from '../../stores/listsStore';
 import { ref } from 'vue';
 
 const { listId } = defineProps<Props>()

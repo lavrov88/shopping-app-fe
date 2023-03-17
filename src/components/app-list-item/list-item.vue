@@ -57,11 +57,11 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useListsStore } from '../../../stores/listsStore';
-import { useSettingsStore } from '../../../stores/settingsStore';
-import { PurchaseItem } from '../../../stores/listsStore';
-import { getIdsSortedAccordingToChecked, sortPurchasesWithIdsArray } from '../../../utils/common';
-import { SORT_TIMEOUT } from '../../../utils/constants';
+import { useListsStore } from '../../stores/listsStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { PurchaseItem } from '../../stores/listsStore';
+import { getIdsSortedAccordingToChecked, sortPurchasesWithIdsArray } from '../../utils/common';
+import { SORT_TIMEOUT } from '../../utils/constants';
 
 import ListItemPurchase from './list-item-purchase.vue'
 import ListItemMenu from './list-item-menu.vue';

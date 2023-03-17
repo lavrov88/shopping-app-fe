@@ -30,6 +30,7 @@
       </v-list-item>
       <div class="pa-2">
         <v-btn
+          @click="onProfileSettingsClick"
           block
           color="light-blue-darken-4"
           variant="outlined"
@@ -43,22 +44,6 @@
     <v-divider />
 
     <v-list density="compact" nav>
-      <!-- <v-list-item
-        v-if="!isAuthorized"
-        @click="onLoginClick"
-        prepend-icon="mdi-view-dashboard"
-        title="Login"
-        value="Login"
-        variant="tonal"
-      ></v-list-item>
-      <v-list-item
-        v-if="isAuthorized"
-        @click="onLogoutClick"
-        prepend-icon="mdi-view-dashboard"
-        title="Logout"
-        value="Logout"
-        variant="tonal"
-      ></v-list-item> -->
       <v-list-item
         v-if="isAuthorized"
         @click="onDeleteAllCheckedClick"
@@ -84,7 +69,8 @@
     </v-list>
 
   </v-navigation-drawer>
-  <dialog-login />
+
+  <dialog-profile />
   <dialog-manage-lists />
 </template>
 
@@ -92,8 +78,8 @@
 import { computed } from 'vue';
 import { useListsStore } from '../../stores/listsStore';
 import { useSettingsStore } from '../../stores/settingsStore'
-import DialogLogin from '../app-dialogs/dialog-login.vue';
 import DialogManageLists from '../app-dialogs/dialog-manage-lists/dialog-manage-lists.vue';
+import DialogProfile from '../app-dialogs/dialog-profile.vue';
 
 const settingsStore = useSettingsStore()
 const listsStore = useListsStore()
@@ -106,13 +92,10 @@ const onMenuDrawerToggle = (value: boolean) => {
 const isAuthorized = computed(() => settingsStore.isAuthorized)
 const username = computed(() => settingsStore.user && settingsStore.user.username)
 
-const onLoginClick = () => {
-  settingsStore.loginDialogIsOpen = true
+const onProfileSettingsClick = () => {
+  settingsStore.profileDialogIsOpen = true
+  settingsStore.optionsMenuIsOpen = false
 }
-const onLogoutClick = () => {
-  settingsStore.logout()
-}
-
 const onDeleteAllCheckedClick = () => {
   listsStore.deleteCheckedPurchasesInAllLists()
   settingsStore.optionsMenuIsOpen = false

@@ -177,8 +177,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { ListItem, PurchaseItem, useListsStore } from '../../../stores/listsStore';
-import { ColorsType, COLOR_OPTIONS } from '../../../utils/constants';
+import { ListItem, PurchaseItem, useListsStore } from '../../stores/listsStore';
+import { ColorsType, COLOR_OPTIONS } from '../../utils/constants';
 
 const { purchaseId, color, listId } = defineProps<Props>()
 const emit = defineEmits(['toggleChecked', 'renameItem', 'deleteItem'])

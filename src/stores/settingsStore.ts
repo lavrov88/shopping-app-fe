@@ -11,14 +11,16 @@ export const useSettingsStore = defineStore('settingsStore', {
 
     appIsInitialized: false,
     optionsMenuIsOpen: false,
-    loginDialogIsOpen: false,
+
+    // dialogs
     listsManageDialogIsOpen: false,
     purchasesManageDialog: {
       isOpen: false,
       listId: null as string | null,
     },
+    profileDialogIsOpen: false,
+    settingsDialogIsOpen: false,
 
-    loginInProgress: false,
     isAuthorized: false,
     user: null as UserData | null,
     userSettings: null as UserSettings | null,
@@ -47,8 +49,8 @@ export const useSettingsStore = defineStore('settingsStore', {
         const listsStore = useListsStore()
 
         await Promise.all([ this.getUserSettings(), listsStore.getLists() ])
-        this.appIsInitialized = true
       }
+      this.appIsInitialized = true
     },
 
     openPurchasesManageDialog(listId: string) {
@@ -68,21 +70,15 @@ export const useSettingsStore = defineStore('settingsStore', {
     // AUTH
 
     async login(username: string, password: string) {
-      this.loginInProgress = true
       const res = await authApi.login(username, password) as AxiosResponse
       if (res.status === 200) {
         const userData = { username, token: res.data.token }
         this.user = userData
         LS.user = userData
-        this.isAuthorized = true
-        await this.getUserSettings()
-        this.loginInProgress = false
-
-        const listsStore = useListsStore()
-        listsStore.getLists()
+        // this.isAuthorized = true
+        // await this.getUserSettings()
         return true
       }
-      this.loginInProgress = false
       return false
     },
 
