@@ -19,12 +19,18 @@ export const useSettingsStore = defineStore('settingsStore', {
       listId: null as string | null,
     },
     profileDialogIsOpen: false,
+    shareListDialog: {
+      isOpen: false,
+      listId: null as string | null,
+    },
+    shareListsRequestsDialogIsOpen: false,
     settingsDialogIsOpen: false,
 
     isAuthorized: false,
     user: null as UserData | null,
     userSettings: null as UserSettings | null,
     settingsFetchingStatuses: {
+      userSettings: false,
       updateListOrder: false,
       toggleMinimizeList: false,
     }
@@ -53,19 +59,34 @@ export const useSettingsStore = defineStore('settingsStore', {
       this.appIsInitialized = true
     },
 
-    openPurchasesManageDialog(listId: string) {
-      this. purchasesManageDialog = {
+    openManagePurchasesDialog(listId: string) {
+      this.purchasesManageDialog = {
         isOpen: true,
-        listId
+        listId,
       }
     },
 
     closePurchasesManageDialog() {
       this. purchasesManageDialog = {
         isOpen: false,
-        listId: null
+        listId: null,
       }
     },
+
+    openShareListDialog(listId: string) {
+      this.shareListDialog = {
+        isOpen: true,
+        listId,
+      }
+    },
+
+    closeShareListDialog() {
+      this.shareListDialog.isOpen = false
+      setTimeout(() => { // remove list after popup will become invisible
+        this.shareListDialog.listId = null
+      }, 500)
+    },
+
 
     // AUTH
 
@@ -75,8 +96,6 @@ export const useSettingsStore = defineStore('settingsStore', {
         const userData = { username, token: res.data.token }
         this.user = userData
         LS.user = userData
-        // this.isAuthorized = true
-        // await this.getUserSettings()
         return true
       }
       return false
@@ -98,7 +117,9 @@ export const useSettingsStore = defineStore('settingsStore', {
     // SETTINGS
 
     async getUserSettings() {
+      this.settingsFetchingStatuses.userSettings = true
       const res = await settingsApi.getSettings() as AxiosResponse
+      this.settingsFetchingStatuses.userSettings = false
       if (res.status === 200) {
         this.userSettings = res.data
       }
@@ -142,6 +163,15 @@ export const useSettingsStore = defineStore('settingsStore', {
       this.settingsFetchingStatuses.toggleMinimizeList = false
     },
 
+    async getUserNames(ids: string[]) {
+      const res = await settingsApi.getUsersNames(ids.join(',')) as AxiosResponse
+      if (res.status === 200) {
+        return res.data
+      } else {
+        return []
+      }
+    },
+
     // ALERTS
 
     addAlert(message: string, type: AlertTypes = 'error') {
@@ -166,7 +196,11 @@ interface UserData {
 interface UserSettings {
   listOrder: string[]
   minimizedLists: string[]
-  sharedListsRequests: string[]
+  sharedListsRequests: {
+    listId: string
+    listName: string
+    userName: string
+  }[]
 }
 export interface UserSettingsUpdateObject {
   listOrder?: string[]

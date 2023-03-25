@@ -67,29 +67,22 @@
         subtitle="Choose a list to move in"
       >
         <template v-slot:text>
-          <div class="purchase-confirmation-popup__text">
+          <div class="purchase-move-inner">
             <v-btn
               v-for="list in availableLists"
               :key="list.id"
               @click="onMoveListClicked(list.id)"
               :color="list.color"
-              class="purchase-confirmation-popup__move_btn"
+              class="purchase-move-list-item"
               block
             >
               {{ list.name }}
             </v-btn>
           </div>
-
-          <div class="purchase-confirmation-popup__footer">
-            <v-btn
-              @click="moveDialogIsOpen = false"
-              variant="outlined"
-              color="blue"
-              block
-            >
-              Cancel
-            </v-btn>
-          </div>
+          <footer-buttons
+            @cancel="moveDialogIsOpen = false"
+            back-btn-text="Cancel"
+          />
         </template>
 
       </v-card>
@@ -106,30 +99,18 @@
         title="Rename"
       >
         <template v-slot:text>
-          <div class="purchase-confirmation-popup__text">
+          <div class="purchase-rename-inner">
             <v-text-field
               v-model="renameValue"
               ref="renameTextField"
             />
           </div>
-
-          <div class="purchase-confirmation-popup__footer">
-            <v-btn
-              @click="onRenameConfirm"
-              color="blue"
-              style="width: 48%;"
-            >
-              Confirm
-            </v-btn>
-            <v-btn
-              @click="renameDialogIsOpen = false"
-              variant="outlined"
-              color="blue"
-              style="width: 48%;"
-            >
-              Cancel
-            </v-btn>
-          </div>
+          <footer-buttons
+            @cancel="renameDialogIsOpen = false"
+            @confirm="onRenameConfirm"
+            :has-confirm-btn="true"
+            back-btn-text="Cancel"
+          />
         </template>
 
       </v-card>
@@ -137,48 +118,27 @@
 
     <!-- DELETE -->
 
-    <v-dialog
-      v-model="deleteConfirmationIsOpen"
-      width="auto"
-      :max-width="400"
+    <dialog-confirm
+      @confirm="onConfimDelete"
+      @cancel="deleteConfirmationIsOpen = false"
+      :is-open="deleteConfirmationIsOpen"
+      confirm-btn-style="red"
+      title="Delete"
     >
-      <v-card
-        title="Delete"
-      >
-        <template v-slot:text>
-          <div class="purchase-confirmation-popup__text">
-            <span>{{ purchase.name }}</span> is not checked. Are you sure you want to delete it?
-          </div>
-
-          <div class="purchase-confirmation-popup__footer">
-            <v-btn
-              @click="onConfimDelete"
-              color="red-darken-2"
-              style="width: 48%;"
-            >
-              Confirm
-            </v-btn>
-            <v-btn
-              @click="deleteConfirmationIsOpen = false"
-              variant="outlined"
-              color="blue"
-              style="width: 48%;"
-            >
-              Cancel
-            </v-btn>
-          </div>
-        </template>
-
-      </v-card>
-    </v-dialog>
+      <span class="delete-confirm-purchase-name">{{ purchase.name }}</span>
+      is not checked.
+      Are you sure you want to delete it?
+    </dialog-confirm>
 
   </v-btn>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { ListItem, PurchaseItem, useListsStore } from '../../stores/listsStore';
-import { ColorsType, COLOR_OPTIONS } from '../../utils/constants';
+import { computed, ref } from 'vue'
+import { ListItem, PurchaseItem, useListsStore } from '../../stores/listsStore'
+import { ColorsType, COLOR_OPTIONS } from '../../utils/constants'
+import DialogConfirm from '../app-dialogs/dialog-confirm.vue'
+import FooterButtons from '../common/footer-buttons.vue'
 
 const { purchaseId, color, listId } = defineProps<Props>()
 const emit = defineEmits(['toggleChecked', 'renameItem', 'deleteItem'])
@@ -285,28 +245,14 @@ interface Props {
   padding-left: 20px !important;
   padding-right: 20px !important;
 }
-
 .purchase-menu-item .v-list-item__prepend {
   width: 45px;
 }
-
-.purchase-confirmation-popup__text {
-  color: #6c6c6c;
+.purchase-move-list-item {
+  margin-bottom: 10px;
 }
-
-.purchase-confirmation-popup__text > span {
+.delete-confirm-purchase-name {
   font-weight: 700;
   text-transform: capitalize;
-}
-
-.purchase-confirmation-popup__footer {
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.purchase-confirmation-popup__move_btn {
-  margin-bottom: 10px;
 }
 </style>

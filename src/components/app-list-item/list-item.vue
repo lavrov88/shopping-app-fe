@@ -21,6 +21,10 @@
               :content="itemsCountString"
               inline
             ></v-badge>
+            <list-item-share-button
+              v-if="showListShareBtn"
+              :listId="listId"
+            />
             <list-item-menu :listId="listId" />
           </div>
         </div>
@@ -44,7 +48,7 @@
             :key="purchase.id"
             @toggleChecked="onTogglePuchaseChecked"
             @renameItem="onRenameItem"
-            @deleteItem="onDeletePurchase"
+            @deleteItem="onDeletePurchase(purchase)"
             :purchaseId="purchase.id"
             :color="list.color"
             :listId="listId"
@@ -56,15 +60,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { useListsStore } from '../../stores/listsStore';
-import { useSettingsStore } from '../../stores/settingsStore';
-import { PurchaseItem } from '../../stores/listsStore';
-import { getIdsSortedAccordingToChecked, sortPurchasesWithIdsArray } from '../../utils/common';
-import { SORT_TIMEOUT } from '../../utils/constants';
+import { computed, ref, watch } from 'vue'
+import { useListsStore } from '../../stores/listsStore'
+import { useSettingsStore } from '../../stores/settingsStore'
+import { PurchaseItem } from '../../stores/listsStore'
+import { getIdsSortedAccordingToChecked, sortPurchasesWithIdsArray } from '../../utils/common'
+import { SORT_TIMEOUT } from '../../utils/constants'
 
 import ListItemPurchase from './list-item-purchase.vue'
-import ListItemMenu from './list-item-menu.vue';
+import ListItemShareButton from './list-item-share-button.vue'
+import ListItemMenu from './list-item-menu.vue'
 
 const listsStore = useListsStore()
 const settingsStore = useSettingsStore()
@@ -161,7 +166,7 @@ const onRenameItem = ({ purchase, name }: {purchase: PurchaseItem, name: string}
   listsStore.renamePurchase(listId, purchase, name)
 }
 const onDeletePurchase = (purchase: PurchaseItem) => {
-  listsStore.deletePurchases(listId, [purchase])
+  listsStore.deletePurchases(listId, [ purchase ])
 }
 
 // HEADER, MINIMIZE
@@ -180,6 +185,10 @@ const isMinimized = computed({
 const itemsCountString = computed(() => {
   const count = list.value.items.length
   return `${count} ${count === 1 ? 'item' : 'items'}`
+})
+
+const showListShareBtn = computed(() => {
+  return !!list.value.users.sharedUsers.length
 })
 
 // TYPES
@@ -209,10 +218,10 @@ interface Props {
   align-items: center;
 }
 .list-item-title__item.left {
-  gap: 3px;
+  gap: 5px;
 }
 .list-item-title__item.right {
-  gap: 5px;
+  gap: 10px;
 }
 .purchases-list {
   display: flex;

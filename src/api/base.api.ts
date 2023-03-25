@@ -16,10 +16,11 @@ const getConfig = () => {
   }
 }
 
-const handleAxiosError = (e: AxiosError) => {
-  const status = e.response?.status || 0
-  const statusText = e.response?.statusText || e.message
-  return { status, statusText }
+const handleAxiosError = (e: AxiosError<{ message?: string }>) => {
+  return {
+    status: e.response?.status || 0,
+    statusText: e.response?.data.message || e.response?.statusText || e.message,
+  }
 }
 
 export const get = async (url: string, noConfig: boolean = false) => {
@@ -32,7 +33,7 @@ export const get = async (url: string, noConfig: boolean = false) => {
     }
     return response
   } catch (e) {
-    return handleAxiosError(e as AxiosError)
+    return handleAxiosError(e as AxiosError<OptionalErrorMessage>)
   }
 }
 
@@ -46,7 +47,7 @@ export const post = async (url: string, payload?: any, noConfig: boolean = false
     }
     return response
   } catch (e) {
-    return handleAxiosError(e as AxiosError)
+    return handleAxiosError(e as AxiosError<OptionalErrorMessage>)
   }
 }
 
@@ -60,7 +61,7 @@ export const put = async (url: string, payload?: any, noConfig: boolean = false)
     }
     return response
   } catch (e) {
-    return handleAxiosError(e as AxiosError)
+    return handleAxiosError(e as AxiosError<OptionalErrorMessage>)
   }
 }
 
@@ -74,6 +75,10 @@ export const del = async (url: string, noConfig: boolean = false) => {
     }
     return response
   } catch (e) {
-    return handleAxiosError(e as AxiosError)
+    return handleAxiosError(e as AxiosError<OptionalErrorMessage>)
   }
+}
+
+interface OptionalErrorMessage {
+  message?: string
 }

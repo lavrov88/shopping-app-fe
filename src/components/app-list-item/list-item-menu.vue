@@ -18,46 +18,23 @@
     </v-menu>
   </div>
 
-  <v-dialog
-      v-model="deleteAllConfirmIsOpen"
-      width="auto"
-      :max-width="400"
-    >
-      <v-card
-        title="Delete all"
-      >
-        <template v-slot:text>
-          <div class="purchase-confirmation-popup__text">
-            Are you sure you want to delete all purchases in list <span>{{ list?.name || '' }}</span>?
-          </div>
-
-          <div class="purchase-confirmation-popup__footer">
-            <v-btn
-              @click="onConfimDeleteAll"
-              color="red-darken-2"
-              style="width: 48%;"
-            >
-              Confirm
-            </v-btn>
-            <v-btn
-              @click="deleteAllConfirmIsOpen = false"
-              variant="outlined"
-              color="blue"
-              style="width: 48%;"
-            >
-              Cancel
-            </v-btn>
-          </div>
-        </template>
-
-      </v-card>
-    </v-dialog>
+  <dialog-confirm
+    @cancel="deleteAllConfirmIsOpen = false"
+    @confirm="onConfimDeleteAll"
+    :is-open="deleteAllConfirmIsOpen"
+    title="Delete all"
+    confirm-btn-style="red"
+  >
+    Are you sure you want to delete all purchases in list
+    <span class="delete-all-confirm-list-name">{{ list?.name || '' }}</span>?
+  </dialog-confirm>
 </template>
 
 <script setup lang="ts">
-import { useSettingsStore } from '../../stores/settingsStore';
-import { useListsStore } from '../../stores/listsStore';
+import { useSettingsStore } from '../../stores/settingsStore'
+import { useListsStore } from '../../stores/listsStore'
 import { ref } from 'vue';
+import DialogConfirm from '../app-dialogs/dialog-confirm.vue'
 
 const { listId } = defineProps<Props>()
 const settingsStore = useSettingsStore()
@@ -68,7 +45,13 @@ const list = listsStore.lists.find(l => l.id === listId)
 // MANAGE PURCHASES
 
 const openManagePurchasesDialog = () => {
-  settingsStore.openPurchasesManageDialog(listId)
+  settingsStore.openManagePurchasesDialog(listId)
+}
+
+// SHARE LIST
+
+const openShareListDialog = () => {
+  settingsStore.openShareListDialog(listId)
 }
 
 
@@ -96,6 +79,11 @@ const listMenuItems = [
     onClick: openManagePurchasesDialog
   },
   {
+    name: 'Share list',
+    icon: 'mdi-account-group',
+    onClick: openShareListDialog
+  },
+  {
     name: 'Delete checked purchases',
     icon: 'mdi-list-status',
     onClick: deleteCheckedPurchases
@@ -113,4 +101,8 @@ interface Props {
 </script>
 
 <style>
+.delete-all-confirm-list-name {
+  font-weight: 700;
+  text-transform: capitalize;
+}
 </style>

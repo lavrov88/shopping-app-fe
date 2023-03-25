@@ -73,7 +73,7 @@ import { AVAIL_COLORS, ColorsType, COLOR_OPTIONS } from '../../../utils/constant
 const colors = AVAIL_COLORS
 
 const { data, color, itemType } = defineProps<EditableItemProps>()
-const emits = defineEmits(['nameChanged', 'colorChanged', 'delete'])
+const emit = defineEmits(['nameChanged', 'colorChanged', 'delete'])
 const nameModel = ref(data.name)
 const colorModel = ref(data.color)
 
@@ -89,13 +89,13 @@ const getOptionColor = (color: string) => {
 }
 
 const onChangeName = (newValue: string) => {
-  emits('nameChanged', { id: data.id, name: newValue })
+  emit('nameChanged', { id: data.id, name: newValue })
 }
 const onChangeColor = (newValue: string) => {
-  emits('colorChanged', { id: data.id, color: newValue })
+  emit('colorChanged', { id: data.id, color: newValue })
 }
 const onDelete = () => {
-  emits('delete', { id: data.id, value: !data.toDelete })
+  emit('delete', { id: data.id, value: !data.toDelete })
 }
 
 interface EditableItemProps {

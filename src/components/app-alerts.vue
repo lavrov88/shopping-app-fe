@@ -37,7 +37,7 @@ watch(alertsToShow, (newValue) => {
     v-model="alert.show"
     location="top"
     :color="getAlertColor(alert.type)"
-    :timeout="3000"
+    :timeout="4000"
   >
     <div class="alert-inner">
       <v-icon v-if="alert.type === 'error'" icon="mdi-alert-circle-outline" />

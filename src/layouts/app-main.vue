@@ -30,21 +30,27 @@
             <span>Open menu to create the first one.</span>
           </div>
         </div>
+
         <dialog-add-purchases />
         <dialog-manage-purchases />
+        <dialog-share-list />
+        <dialog-shared-lists-requests />
+
       </main>
     </v-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useListsStore } from '../stores/listsStore';
+import { computed } from 'vue'
+import { useListsStore } from '../stores/listsStore'
 
 import AppHeader from '../components/app-header/app-header.vue'
-import ListItem from '../components/app-list-item/list-item.vue';
-import DialogAddPurchases from '../components/app-dialogs/dialog-add-purchases.vue';
-import DialogManagePurchases from '../components/app-dialogs/dialog-manage-purchases/dialog-manage-purchases.vue';
+import ListItem from '../components/app-list-item/list-item.vue'
+import DialogAddPurchases from '../components/app-dialogs/dialog-add-purchases.vue'
+import DialogManagePurchases from '../components/app-dialogs/dialog-manage-purchases/dialog-manage-purchases.vue'
+import DialogShareList from '../components/app-dialogs/dialog-share-list.vue'
+import DialogSharedListsRequests from '../components/app-dialogs/dialog-shared-lists-requests.vue'
 
 const listsStore = useListsStore()
 

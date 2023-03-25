@@ -8,7 +8,6 @@
       subtitle="List editing"
     >
       <v-card-text>
-
         <draggable
           :list="temporaryPurchases"
           item-key="id"
@@ -29,34 +28,24 @@
           </template>
         </draggable>
 
-        <div class="manage-lists-footer">
-          <v-btn
-            @click="onAccept"
-            color="blue"
-            style="width: 48%;"
-          >
-            Accept
-          </v-btn>
-          <v-btn
-            @click="onDialogClose"
-            variant="outlined"
-            color="blue"
-            style="width: 48%;"
-          >
-            Back
-          </v-btn>
-        </div>
+        <footer-buttons
+          @cancel="onDialogClose"
+          @confirm="onAccept"
+          :has-confirm-btn="true"
+          confirm-btn-text="Accept"
+        />
       </v-card-text>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
-import { PurchaseItem, useListsStore } from '../../../stores/listsStore';
-import { useSettingsStore } from '../../../stores/settingsStore';
-import EditableItem from '../dialog-manage-lists/editable-item.vue';
+import { PurchaseItem, useListsStore } from '../../../stores/listsStore'
+import { useSettingsStore } from '../../../stores/settingsStore'
+import FooterButtons from '../../common/footer-buttons.vue'
+import EditableItem from '../dialog-manage-lists/editable-item.vue'
 
 const settingsStore = useSettingsStore()
 const listsStore = useListsStore()
@@ -149,19 +138,16 @@ watch(dialogIsOpen, () => {
 })
 </script>
 
-<style scoped>
+<style>
+.manage-purchases-main {
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;
 }
 .not-draggable {
   cursor: no-drop;
-}
-.manage-lists-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 20px;
-  padding-bottom: 10px;
 }
 </style>

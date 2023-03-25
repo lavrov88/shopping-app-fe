@@ -38,23 +38,12 @@
               Add new list
             </v-btn>
           </div>
-          <div class="manage-lists-footer_accept-back">
-            <v-btn
-              @click="onAcceptListsEdit"
-              color="blue"
-              style="width: 48%;"
-            >
-              Accept
-            </v-btn>
-            <v-btn
-              @click="onDialogClose"
-              variant="outlined"
-              color="blue"
-              style="width: 48%;"
-            >
-              Back
-            </v-btn>
-          </div>
+          <footer-buttons
+            @confirm="onAcceptListsEdit"
+            @cancel="onDialogClose"
+            :has-confirm-btn="true"
+            confirm-btn-text="Accept"
+          />
         </div>
       </v-card-text>
     </v-card>
@@ -62,16 +51,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 import { useSettingsStore } from '../../../stores/settingsStore'
-import { useListsStore } from '../../../stores/listsStore';
+import { useListsStore } from '../../../stores/listsStore'
+import { getRandom } from '../../../utils/common'
+import { AVAIL_COLORS } from '../../../utils/constants'
 import EditableItem from './editable-item.vue'
-import { getRandom } from '../../../utils/common';
-import { AVAIL_COLORS } from '../../../utils/constants';
+import FooterButtons from '../../common/footer-buttons.vue'
+
 const settingsStore = useSettingsStore()
 const listsStore = useListsStore()
-
 const originalLists = computed(() => listsStore.sortedLists)
 const revertTemporaryLists = () => {
   temporaryLists = reactive(originalLists.value.map(l => {

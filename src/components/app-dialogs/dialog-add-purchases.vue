@@ -43,16 +43,11 @@
                 {{ list.name }}
               </v-btn>
             </div>
-            <div class="add-new-popup__bottom">
-              <v-btn
-                color="blue"
-                variant="outlined"
-                block
-                @click="dialog = false"
-              >
-                Back to lists
-              </v-btn>
-            </div>
+            <footer-buttons
+              @cancel="dialog = false"
+              back-btn-text="Back to lists"
+              class="add-new-popup__footer"
+            />
           </v-card-text>
         </v-card>
       </v-dialog>
@@ -60,10 +55,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useListsStore } from '../../stores/listsStore';
-const listsStore = useListsStore()
+import { computed, ref } from 'vue'
+import { useListsStore } from '../../stores/listsStore'
+import FooterButtons from '../common/footer-buttons.vue'
 
+const listsStore = useListsStore()
 const lists = computed(() => listsStore.sortedLists)
 const dialog = ref(false)
 const inputValue = ref('')
@@ -108,7 +104,7 @@ const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
 .add-new-popup__lists_button_item {
   flex-grow: 1;
 }
-.add-new-popup__bottom{
+.add-new-popup__footer {
   margin-bottom: 10px;
 }
 </style>

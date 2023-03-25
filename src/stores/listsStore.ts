@@ -1,3 +1,4 @@
+import { settingsApi } from './../api/api';
 import { AxiosResponse } from 'axios'
 import { defineStore } from 'pinia'
 import { listsApi } from '../api/api'
@@ -61,8 +62,8 @@ export const useListsStore = defineStore('listsStore', {
       if (res.status === 200) {
         this.lists = res.data
       } else {
-        const settingsStore = useSettingsStore()
-        settingsStore.addAlert(res.statusText, 'error')
+        const { addAlert } = useSettingsStore()
+        addAlert(res.statusText, 'error')
       }
       this.listsFetchingStatuses.getLists = false
     },
@@ -139,6 +140,63 @@ export const useListsStore = defineStore('listsStore', {
       listsToDelete.forEach(ltd => {
         this.deleteList(ltd.id)
       })
+    },
+
+    // LISTS SHARING
+
+    async shareList(payload: ShareListObject) {
+      const { addAlert } = useSettingsStore()
+      const res = await listsApi.shareList(payload)
+      if (res.status === 200) {
+        addAlert('Shared successfully', 'success')
+        await this.getLists()
+        return true
+      } else {
+        addAlert(res.statusText)
+        return false
+      }
+    },
+
+    async acceptListShare(listId: string) {
+      const { addAlert } = useSettingsStore()
+      const res = await listsApi.acceptListShare(listId) as AxiosResponse
+      if (res.status === 200) {
+        const settingsStore = useSettingsStore()
+        addAlert('Sharing confirmed', 'success')
+        await this.getLists()
+
+        if (settingsStore.userSettings) {
+          settingsStore.userSettings.sharedListsRequests = res.data.sharedListsRequests
+        }
+      } else {
+        addAlert(res.statusText)
+      }
+    },
+
+    async rejectListShare(listId: string) {
+      const { addAlert } = useSettingsStore()
+      const res = await listsApi.rejectListShare(listId) as AxiosResponse
+      if (res.status === 200) {
+        const settingsStore = useSettingsStore()
+        addAlert('Sharing was rejected', 'success')
+
+        if (settingsStore.userSettings) {
+          settingsStore.userSettings.sharedListsRequests = res.data.sharedListsRequests
+        }
+      } else {
+        addAlert(res.statusText)
+      }
+    },
+
+    async removeUserFromShared(listId: string, userId: string) {
+      const { addAlert } = useSettingsStore()
+      const res = await listsApi.removeUserFromShared(listId, userId)
+      if (res.status === 200) {
+        addAlert('List now is not shared for this user', 'success')
+        await this.getLists()
+      } else {
+        addAlert(res.statusText)
+      }
     },
 
     // PURCHASES
@@ -329,4 +387,9 @@ export interface PurchaseUpdateObject {
   name: string
   sortRate: number
   toDelete: boolean
+}
+
+export interface ShareListObject {
+  listId: string
+  username: string
 }
