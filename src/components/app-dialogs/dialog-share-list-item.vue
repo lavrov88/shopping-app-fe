@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { UserWithName } from './dialog-share-list.vue'
+import { UserWithName } from '../../types/types'
 
 const { user, showRemoveBtn, removeIsInProgress } = defineProps<DialogShareListItemProps>()
 const emit = defineEmits([ 'remove' ])

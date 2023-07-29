@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { Ref, computed, ref, watch } from 'vue'
 import { useListsStore } from '../../stores/listsStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { PurchaseItem } from '../../stores/listsStore'
@@ -84,7 +84,7 @@ const currentListItems = computed(() => {
 })
 
 const sortedIds = ref(getIdsSortedAccordingToChecked(currentListItems.value))
-const sortDelayTimer = ref(0)
+const sortDelayTimer: Ref<ReturnType<typeof setTimeout> | number> = ref(0)
 const sortDelayTimerStart = ref(0)
 const sortDelayTimerEnd = ref(0)
 
@@ -133,7 +133,7 @@ const progressBarStyle = {
   top: '40px'
 }
 const progressBarValue = ref(0)
-const progressBarInterval = ref(0)
+const progressBarInterval: Ref<ReturnType<typeof setTimeout> | number> = ref(0)
 const progressBarIsVisible = ref(false)
 
 watch(sortDelayTimer, () => {

@@ -111,6 +111,7 @@ import { useSettingsStore } from '../../stores/settingsStore'
 import DialogShareListItem from './dialog-share-list-item.vue'
 import DialogConfirm from './dialog-confirm.vue'
 import FooterButtons from '../common/footer-buttons.vue'
+import { UserWithName } from '../../types/types'
 
 const settingsStore = useSettingsStore()
 const listsStore = useListsStore()
@@ -171,11 +172,6 @@ const getUsers = async () => {
 }
 const checkIsUserMe = (userId: string) => {
   return currentUserId.value === userId
-}
-
-export interface UserWithName {
-  id: string
-  name: string
 }
 
 // REMOVE USER
