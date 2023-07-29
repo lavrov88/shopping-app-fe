@@ -28,7 +28,6 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { set } from 'vue-demi';
 import { useListsStore } from '../../stores/listsStore';
 import { useSettingsStore } from '../../stores/settingsStore'
 const listsStore = useListsStore()

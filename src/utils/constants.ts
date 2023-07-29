@@ -1,5 +1,5 @@
 // export const API_URL = 'http://localhost:5000'
-export const API_URL = 'http://194.87.219.172:5000'
+export const API_URL = 'https://194.87.219.172:5000'
 export const SORT_TIMEOUT = 3000
 
 // COLORS
