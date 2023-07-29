@@ -9,7 +9,7 @@
     >
       <v-card-text>
         <div
-          v-if="usersAreLoading || (users.length)"
+          v-if="usersAreLoading || users.length"
           class="share-list-users"
         >
           <div
@@ -21,42 +21,52 @@
               indeterminate
             />
           </div>
-          <v-list>
-            <v-list-item
-              v-for="user in users"
-              :key="user.id"
-              :title="user.name"
-              class="share-list-user-item"
-              :rounded="true"
-            >
-              <template v-slot:prepend>
-                <v-avatar color="grey-lighten-1">
-                  <v-icon color="white">mdi-account</v-icon>
-                </v-avatar>
-              </template>
 
-              <template v-slot:title>
-                <div class="share-list-user-item-inner">
-                  <span class="share-list-user-item-title">
-                    {{ user.name }}
-                  </span>
-                  <v-btn
-                    @click="onUserRemoveClick(user.id)"
-                    :disabled="userRemoveIsInProgress"
-                    :loading="userRemoveIsInProgress"
-                    color="red"
-                    prepend-icon="mdi-account-remove"
-                  >Remove</v-btn>
-                </div>
-              </template>
-            </v-list-item>
-          </v-list>
+          <div
+            v-if="!usersAreLoading && owner"
+            class="share-list-users-owner"
+          >
+            <p class="font-weight-light text-medium-emphasis">
+              Owner
+            </p>
+            <v-list>
+              <dialog-share-list-item
+                :user="owner"
+                :user-is-me="checkIsUserMe(owner.id)"
+              />
+            </v-list>
+          </div>
+
+          <div
+            v-if="!usersAreLoading && users && users.length"
+            class="share-list-users-items"
+          >
+            <p class="font-weight-light text-medium-emphasis">
+              Shared users
+            </p>
+            <v-list>
+              <dialog-share-list-item
+                v-for="user in users"
+                :key="user.id"
+                :user="user"
+                :user-is-me="checkIsUserMe(user.id)"
+                :show-remove-btn="checkIsAbleToRemoveUser(user.id, owner?.id || '')"
+                :remove-is-in-progress="userRemoveIsInProgress"
+                @remove="onUserRemoveClick(user.id)"
+              />
+            </v-list>
+          </div>
         </div>
 
         <v-divider />
 
-        <div class="share-list-add-new">
-          <p class="font-weight-light text-medium-emphasis">Add new user to share with</p>
+        <div
+          v-if="owner?.id === currentUserId"
+          class="share-list-add-new"
+        >
+          <p class="font-weight-light text-medium-emphasis">
+            Add new user to share with
+          </p>
           <div class="share-list-add-new-input-and-button">
             <v-text-field
               v-model="newUserLogin"
@@ -98,6 +108,7 @@
 import { computed, ref, watch } from 'vue'
 import { useListsStore } from '../../stores/listsStore'
 import { useSettingsStore } from '../../stores/settingsStore'
+import DialogShareListItem from './dialog-share-list-item.vue'
 import DialogConfirm from './dialog-confirm.vue'
 import FooterButtons from '../common/footer-buttons.vue'
 
@@ -106,6 +117,7 @@ const listsStore = useListsStore()
 
 const listId = computed(() => settingsStore.shareListDialog.listId)
 const list = computed(() => listsStore.sortedLists.find(l => l.id === listId.value))
+const currentUserId = computed(() => settingsStore.user?.id)
 
 // TITLE
 
@@ -127,7 +139,20 @@ const subtitle = computed(() => {
 
 // SHARED WITH USERS LIST
 
-const ids = computed(() => list.value?.users.sharedUsers)
+const ids = computed(() => {
+  const ownerId = list.value?.users.owner
+  const sharedUsersIds = list.value?.users.sharedUsers
+  let idsArr: string[] = []
+
+  if (ownerId) {
+    idsArr = [ ownerId ]
+  }
+  if (sharedUsersIds) {
+    idsArr = [ ...idsArr, ...sharedUsersIds ]
+  }
+  return idsArr
+})
+const owner = ref<UserWithName | null>(null)
 const users = ref<UserWithName[]>([])
 const usersAreLoading = ref(false)
 
@@ -136,13 +161,19 @@ const getUsers = async () => {
     users.value = []
     return
   }
+  let allUsersArr = []
 
   usersAreLoading.value = true
-  users.value = await settingsStore.getUserNames(ids.value)
+  allUsersArr = await settingsStore.getUserNames(ids.value)
+  owner.value = allUsersArr[0]
+  users.value = allUsersArr.slice(1)
   usersAreLoading.value = false
 }
+const checkIsUserMe = (userId: string) => {
+  return currentUserId.value === userId
+}
 
-interface UserWithName {
+export interface UserWithName {
   id: string
   name: string
 }
@@ -153,6 +184,9 @@ const confirmDeleteDialogIsOpen = ref(false)
 const userIdToConfirmDelete = ref('')
 const userRemoveIsInProgress = ref(false)
 
+const checkIsAbleToRemoveUser = (userId: string, ownerId: string) => {
+  return currentUserId.value === ownerId || currentUserId.value === userId
+}
 const onUserRemoveClick = (userId: string) => {
   userIdToConfirmDelete.value = userId
   confirmDeleteDialogIsOpen.value = true
@@ -203,6 +237,7 @@ const onDialogClose = () => {
 
 watch(dialogIsOpen, (newValue) => {
   if (newValue) {
+    owner.value = null
     users.value = []
     newUserLogin.value = ''
     getUsers()

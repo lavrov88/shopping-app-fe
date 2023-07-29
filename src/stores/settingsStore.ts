@@ -93,7 +93,8 @@ export const useSettingsStore = defineStore('settingsStore', {
     async login(username: string, password: string) {
       const res = await authApi.login(username, password) as AxiosResponse
       if (res.status === 200) {
-        const userData = { username, token: res.data.token }
+        const { id, token } = res.data
+        const userData = { username, id, token }
         this.user = userData
         LS.user = userData
         return true
@@ -105,6 +106,22 @@ export const useSettingsStore = defineStore('settingsStore', {
       this.isAuthorized = false
       this.user = null
       LS.user = null
+    },
+
+    async register(username: string, password: string) {
+      const res = await authApi.register(username, password) as AxiosResponse
+      if (res.status === 200) {
+        return true
+      }
+      return false
+    },
+
+    async changePassword(oldPassword: string, newPassword: string) {
+      const res = await authApi.changePassword(oldPassword, newPassword) as AxiosResponse
+      if (res.status === 200) {
+        return true
+      }
+      return res.statusText
     },
 
     checkLocalStorageAuth() {
@@ -191,6 +208,7 @@ export const useSettingsStore = defineStore('settingsStore', {
 
 interface UserData {
   username: string
+  id: string
   token: string
 }
 interface UserSettings {

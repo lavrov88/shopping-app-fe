@@ -3,7 +3,11 @@ import { UserSettingsUpdateObject } from '../stores/settingsStore';
 import { del, get, post, put } from './base.api';
 
 export const authApi = {
-  login: async (username: string, password: string) => post(`/auth/login`, { username, password }, true)
+  login: async (username: string, password: string) => post(`/auth/login`, { username, password }, true),
+  register: async (username: string, password: string) => post(`/auth/register`, { username, password }, true),
+  changePassword: async (oldPassword: string, newPassword: string) => {
+    return post(`/auth/change-password`, { oldPassword, newPassword })
+  },
 }
 
 export const listsApi = {

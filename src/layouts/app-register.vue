@@ -12,139 +12,129 @@
             <v-text-field
               v-model="username"
               :rules="[ required ]"
-              validate-on="blur"
               label="Username"
               ref="usernameField"
             ></v-text-field>
 
             <v-text-field
               v-model="password"
-              :rules="[ required, hasLengthCreator(6) ]"
+              :rules="[ required, hasLengthCreator(6, 10) ]"
               validate-on="blur"
               label="Password"
               type="password"
               ref="passwordField"
+              @blur="updatePasswordRepeatValidation"
+            ></v-text-field>
+
+            <v-text-field
+              v-model="passwordRepeat"
+              :rules="[
+                required,
+                matchesValueCreator(passwordRepeatErrorMessage)(passwordRepeat, password)
+              ]"
+              validate-on="blur"
+              label="Repeat password"
+              type="password"
+              ref="passwordRepeatField"
             ></v-text-field>
 
             <v-btn
-              @click="onLoginClick"
+              @click="onRegisterClick"
               color="light-blue-darken-4"
               rounded="lg"
               :loading="loading"
               :disabled="loading"
             >
-              Login
+              Register
             </v-btn>
+
             <v-btn
-              @click="$emit('toggle-to-register')"
+              @click="$emit('toggle-to-login')"
               color="light-blue-darken-4"
               variant="plain"
               rounded="lg"
               :disabled="loading"
             >
-              Not a user? Register
+              Back to login
             </v-btn>
           </div>
         </template>
       </v-card>
     </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useSettingsStore } from '../stores/settingsStore';
 import { onMounted } from 'vue';
 import { onUnmounted } from 'vue';
-import { useSettingsStore } from '../stores/settingsStore';
-import { required, hasLengthCreator } from '../utils/validators'
+import { required, hasLengthCreator, matchesValueCreator } from '../utils/validators';
 
+const emit = defineEmits([ 'toggle-to-login' ])
 const settingsStore = useSettingsStore()
-const { login, addAlert, initApp } = settingsStore
+const { register, addAlert } = settingsStore
 
 const username = ref('')
 const password = ref('')
+const passwordRepeat = ref('')
 const loading = ref(false)
 
 // VALIDATION
 
 const usernameField = ref<any>(null)
 const passwordField = ref<any>(null)
+const passwordRepeatField = ref<any>(null)
+const passwordRepeatErrorMessage = 'Entered passwords are different'
+
 const checkAreFieldsValid = async () => {
   const usernameErrors = await usernameField.value.validate()
   const passwordErrors = await passwordField.value.validate()
+  const passwordRepeatErrors = await passwordRepeatField.value.validate()
 
-  return !([ ...usernameErrors, ...passwordErrors ].length)
+  return !([ ...usernameErrors, ...passwordErrors, ...passwordRepeatErrors ].length)
 }
 
-// LOGIN
+const updatePasswordRepeatValidation = () => {
+  if (passwordRepeat.value) {
+    passwordRepeatField.value.validate()
+  }
+}
 
-const onLoginClick = async () => {
+// REGISTER
+
+const onRegisterClick = async () => {
   const fieldsAreValid = await checkAreFieldsValid()
   if (!fieldsAreValid) {
     return
   }
 
   loading.value = true
-  const loginResult = await login(username.value, password.value)
+  const registerResult = await register(username.value, password.value)
   loading.value = false
 
-  if (loginResult) {
-    addAlert('Logged successfully', 'success')
-    settingsStore.appIsInitialized = false
-    initApp()
+  if (registerResult) {
+    addAlert('Registered successfully. Now you can login with this credentials.', 'success')
+    emit('toggle-to-login')
   } else {
-    addAlert('Wrong username or password')
+    addAlert('Registration failed')
   }
 }
 
-const loginKeydownHandler = (event: KeyboardEvent) => {
+const registerKeydownHandler = (event: KeyboardEvent) => {
   if (event.key === 'Enter') {
-    onLoginClick()
+    onRegisterClick()
   }
 }
 onMounted(() => {
-  window.addEventListener('keydown', loginKeydownHandler)
+  window.addEventListener('keydown', registerKeydownHandler)
 })
 onUnmounted(() => {
-  window.removeEventListener('keydown', loginKeydownHandler)
+  window.removeEventListener('keydown', registerKeydownHandler)
 })
 
 </script>
 
 <style>
-.login-layout {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100vh;
-}
-
-.login-containter {
-  width: 500px;
-}
-
-.login-card-inner {
-  display: flex;
-  flex-direction: column;
-  padding: 40px 60px;
-}
-
-.login-title {
-  margin-bottom: 40px;
-  text-align: center;
-  font-weight: normal;
-}
-
-.login-card-inner button {
-  margin-top: 20px;
-}
-
-.login-card-inner .v-checkbox {
-  margin-top: 10px;
-  margin-bottom: -20px;
-}
-.login-card-inner .v-input__control {
-  justify-content: center;
-}
 </style>
