@@ -85,6 +85,29 @@ let listIds = computed(() => listsStore.sortedLists.map(l => l.id))
   gap: 20px;
 }
 
+/* MOBILE */
+
+@media (max-width: 600px) {
+  html {
+    overflow-y: hidden !important;
+  }
+  .main-layout {
+    width: 100vw;
+    margin-top: 0;;
+  }
+  .main-layout > .v-card {
+  border-radius: 0px;
+  }
+  .app-main-lists {
+    height: 100vh;
+    padding: 74px 5px 5px;
+    overflow-y: auto;
+    background-color: #eee;
+  }
+  .list-items {
+    padding-bottom: 50px;
+  }
+}
 
 /* TRANSITION ANIMATION */
 

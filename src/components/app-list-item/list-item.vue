@@ -229,6 +229,14 @@ interface Props {
   gap: 10px;
 }
 
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .list-item-inner .v-expansion-panel-text__wrapper {
+    padding: 10px;
+  }
+}
+
 /* TRANSITION ANIMATION */
 
 .purchases-list-item {

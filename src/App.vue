@@ -29,12 +29,28 @@ import AppAlerts from './components/app-alerts.vue';
 import AppNav from './components/app-nav/app-nav.vue'
 import AppLogin from './layouts/app-login.vue'
 import AppRegister from './layouts/app-register.vue';
+import { onMounted } from 'vue';
+import { onBeforeUnmount } from 'vue';
 
 const settingsStore = useSettingsStore()
 const appIsInitialized = computed(() => settingsStore.appIsInitialized)
 const isAuthorized = computed(() => settingsStore.isAuthorized)
-
 const registerIsActive = ref(false)
+
+// resize handler
+
+const handleResize = () => {
+  settingsStore.toggleMobileLayout(window.innerWidth <= 600)
+};
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+  handleResize();
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
+});
+
+// app initialization
 
 const initApp = () => {
   settingsStore.initApp()

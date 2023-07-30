@@ -2,6 +2,7 @@
   <v-dialog
     v-model="dialogIsOpen"
     width="450"
+    class="dialog-share-list"
   >
     <v-card
       :title="list?.name"
@@ -283,5 +284,16 @@ watch(dialogIsOpen, (newValue) => {
 
 .share-list-add-new .v-input__details {
   display: none;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .dialog-share-list > .v-overlay__content {
+    max-width: calc(100vw - 10px) !important;
+  }
+  .dialog-share-list > .v-overlay__content .v-card-text {
+    padding: 10px !important;
+  }
 }
 </style>

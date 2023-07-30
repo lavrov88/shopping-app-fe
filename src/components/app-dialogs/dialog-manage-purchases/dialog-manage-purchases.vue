@@ -2,6 +2,7 @@
   <v-dialog
     v-model="dialogIsOpen"
     width="450"
+    class="dialog-manage-purchases"
   >
     <v-card
       :title="list?.name"
@@ -149,5 +150,13 @@ watch(dialogIsOpen, () => {
 }
 .not-draggable {
   cursor: no-drop;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .dialog-manage-purchases > .v-overlay__content {
+    max-width: calc(100vw - 10px) !important;
+  }
 }
 </style>

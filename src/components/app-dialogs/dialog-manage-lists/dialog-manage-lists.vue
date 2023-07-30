@@ -2,6 +2,7 @@
   <v-dialog
     v-model="dialogIsOpen"
     width="450"
+    class="dialog-manage-lists"
   >
     <v-card title="Manage lists">
       <v-card-text>
@@ -164,7 +165,7 @@ watch(originalLists, revertTemporaryLists)
 
 </script>
 
-<style scoped>
+<style>
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;
@@ -181,5 +182,16 @@ watch(originalLists, revertTemporaryLists)
   align-items: center;
   padding-top: 10px;
   padding-bottom: 10px;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .dialog-manage-lists > .v-overlay__content {
+    max-width: calc(100vw - 10px) !important;
+  }
+  .dialog-manage-lists > .v-overlay__content .v-card-text {
+    padding: 10px !important;
+  }
 }
 </style>

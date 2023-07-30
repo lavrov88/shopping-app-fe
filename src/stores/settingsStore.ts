@@ -10,6 +10,7 @@ export const useSettingsStore = defineStore('settingsStore', {
     alertsToShow: [] as AlertToShow[],
 
     appIsInitialized: false,
+    mobileLayout: false,
     optionsMenuIsOpen: false,
 
     // dialogs
@@ -57,6 +58,10 @@ export const useSettingsStore = defineStore('settingsStore', {
         await Promise.all([ this.getUserSettings(), listsStore.getLists() ])
       }
       this.appIsInitialized = true
+    },
+
+    toggleMobileLayout(value: boolean) {
+      this.mobileLayout = value
     },
 
     openManagePurchasesDialog(listId: string) {

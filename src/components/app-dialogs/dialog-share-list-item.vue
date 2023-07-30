@@ -18,11 +18,12 @@
       </span>
       <v-btn
         v-if="showRemoveBtn"
-        @click="emit('remove')"
         :disabled="removeIsInProgress"
         :loading="removeIsInProgress"
         color="red"
         prepend-icon="mdi-account-remove"
+        @click="emit('remove')"
+        class="remove-user-button"
       >
         Remove
       </v-btn>
@@ -51,11 +52,9 @@ interface DialogShareListItemProps {
   padding-top: 10px !important;
   padding-bottom: 10px !important;
 }
-
 .share-list-user-item:hover {
   background-color: rgba(133, 133, 133, 0.088);
 }
-
 .share-list-user-item-inner {
   display: flex;
   justify-content: space-between;
