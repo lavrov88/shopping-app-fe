@@ -121,7 +121,7 @@ onUnmounted(() => {
 }
 
 .login-containter {
-  width: 500px;
+  max-width: 500px;
 }
 
 .login-card-inner {
@@ -146,5 +146,27 @@ onUnmounted(() => {
 }
 .login-card-inner .v-input__control {
   justify-content: center;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  body {
+    overflow-x: hidden;
+  }
+  .login-layout {
+    align-items: start;
+    overflow-x: hidden;
+  }
+  .login-containter {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .login-card-wrapper {
+    width: 100%;
+    overflow-x: hidden;
+  }
 }
 </style>

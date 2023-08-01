@@ -9,6 +9,8 @@ const getAlertColor = (alertType: string) => {
   switch (alertType) {
     case 'error':
       return 'red-darken-4'
+    case 'warning':
+      return 'amber-lighten-1'
     case 'info':
       return 'blue-lighten-4'
     case 'success':
@@ -41,7 +43,8 @@ watch(alertsToShow, (newValue) => {
   >
     <div class="alert-inner">
       <v-icon v-if="alert.type === 'error'" icon="mdi-alert-circle-outline" />
-      <v-icon v-if="alert.type === 'info'" icon="mdi-bell-ring" />
+      <v-icon v-if="alert.type === 'warning'" icon="mdi-alert" />
+      <v-icon v-if="alert.type === 'info'" icon="mdi-information" />
       <v-icon v-if="alert.type === 'success'" icon="mdi-check-bold" />
 
       <span>{{ alert.text }}</span>

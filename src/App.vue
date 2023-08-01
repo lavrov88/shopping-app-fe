@@ -41,6 +41,7 @@ const registerIsActive = ref(false)
 
 const handleResize = () => {
   settingsStore.toggleMobileLayout(window.innerWidth <= 600)
+  settingsStore.availableWindowHeight = window.visualViewport ? window.visualViewport.height : 0
 };
 onMounted(() => {
   window.addEventListener('resize', handleResize);

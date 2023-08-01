@@ -60,9 +60,11 @@ import { getRandom } from '../../../utils/common'
 import { AVAIL_COLORS } from '../../../utils/constants'
 import EditableItem from './editable-item.vue'
 import FooterButtons from '../../common/footer-buttons.vue'
+import { updateDialogHeight } from '../../../utils/dialogs'
 
 const settingsStore = useSettingsStore()
 const listsStore = useListsStore()
+const availableWindowHeight = computed(() => settingsStore.availableWindowHeight)
 const originalLists = computed(() => listsStore.sortedLists)
 const revertTemporaryLists = () => {
   temporaryLists = reactive(originalLists.value.map(l => {
@@ -162,6 +164,9 @@ watch(dialogIsOpen, () => {
   }
 })
 watch(originalLists, revertTemporaryLists)
+watch(availableWindowHeight, () => {
+  updateDialogHeight(availableWindowHeight.value, 'dialog-manage-lists');
+})
 
 </script>
 

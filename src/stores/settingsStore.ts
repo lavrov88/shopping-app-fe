@@ -11,6 +11,7 @@ export const useSettingsStore = defineStore('settingsStore', {
 
     appIsInitialized: false,
     mobileLayout: false,
+    availableWindowHeight: 0,
     optionsMenuIsOpen: false,
 
     // dialogs
@@ -235,4 +236,4 @@ interface AlertToShow {
   type: AlertTypes
   message: string
 }
-type AlertTypes = 'error' | 'info' | 'success'
+type AlertTypes = 'error' | 'warning' | 'info' | 'success'

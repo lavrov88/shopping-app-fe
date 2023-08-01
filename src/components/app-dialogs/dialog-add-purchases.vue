@@ -13,23 +13,24 @@
             color="light-blue-darken-4"
             rounded="lg"
           >
-            <strong>Add new goods</strong>
+            <strong>Add purchases</strong>
           </v-btn>
         </template>
 
-        <v-card class="add-new-popup" :width="dialogCardWidth">
+        <v-card
+          class="add-new-popup"
+          :width="dialogCardWidth"
+        >
           <v-card-text>
-            <div class="add-new-popup__head_prompt">
-              Enter new products, then select a list
-            </div>
             <div class="add-new-popup__input">
               <v-textarea
                 v-model:model-value="inputValue"
-                label="New products separated by commas"
+                label="New purchases separated by commas"
                 rows="2"
                 variant="filled"
                 auto-grow
                 clearable
+                ref="inputEl"
               >
               </v-textarea>
             </div>
@@ -37,9 +38,9 @@
               <v-btn
                 v-for="list in lists"
                 :key="list.id"
-                @click="onAddNewPurchases(list.id, newPurchases)"
                 :color="list.color"
                 class="add-new-popup__lists_button_item"
+                @click="onAddNewPurchases(list.id, newPurchases)"
               >
                 {{ list.name }}
               </v-btn>
@@ -60,13 +61,17 @@ import { computed, ref } from 'vue'
 import { useListsStore } from '../../stores/listsStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import FooterButtons from '../common/footer-buttons.vue'
+import { watch } from 'vue'
+import { updateDialogHeight } from '../../utils/dialogs'
 
 const settingsStore = useSettingsStore()
 const listsStore = useListsStore()
 const lists = computed(() => listsStore.sortedLists)
 const dialog = ref(false)
+const inputEl = ref<HTMLTextAreaElement | null>(null)
 const inputValue = ref('')
 const mobileLayout = computed(() => settingsStore.mobileLayout)
+const availableWindowHeight = computed(() => settingsStore.availableWindowHeight)
 const dialogWidth = computed(() => mobileLayout.value ? '100%' : 'auto')
 const dialogCardWidth = computed(() => mobileLayout.value ? '100%' : '450')
 const newPurchases = computed(() => {
@@ -74,6 +79,11 @@ const newPurchases = computed(() => {
 })
 
 const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
+  if (!inputValue.value.length) {
+    settingsStore.addAlert(`You did not entered any purchases...`, 'warning')
+    return
+  }
+
   dialog.value = false
   try {
     await listsStore.addNewPurchases(listId, newPurchases)
@@ -82,6 +92,22 @@ const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
     // alert error
   }
 }
+
+watch(dialog, () => {
+  if (!dialog.value) {
+    return
+  }
+
+  setTimeout(() => {
+    if (inputEl.value) {
+      inputEl.value.focus()
+    }
+  }, 0);
+})
+
+watch(availableWindowHeight, () => {
+  updateDialogHeight(availableWindowHeight.value, 'dialog-add-purchases');
+})
 </script>
 
 <style>
@@ -95,11 +121,9 @@ const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
 .add-new-popup {
   width: 550px;
 }
-.add-new-popup__head_prompt {
-  margin-bottom: 10px;
-  font-size: 11px;
-  color: #757575;
-}
+.add-new-popup__input {
+    margin-top: 5px;
+  }
 .add-new-popup__lists_buttons {
   display: flex;
   flex-wrap: wrap;
@@ -121,14 +145,20 @@ const onAddNewPurchases = async (listId: string, newPurchases: string[]) => {
     position: fixed;
     left: 0;
     width: calc(100% - 0px);
-    height: 50px;
+    height: 55px;
     padding: 5px;
     z-index: 100;
     background-color: #eee;
     box-shadow: 0px -4px 4px 0px #eee;
   }
+  .app-main-bottom > button.v-btn {
+    height: 44px;
+  }
+  .dialog-add-purchases.v-overlay {
+    align-items: end;
+  }
   .dialog-add-purchases > .v-overlay__content {
-    max-width: calc(100% - 10px);
+    max-width: calc(100% - 20px) !important;
   }
   .dialog-add-purchases .v-card-text {
     padding: 10px 10px 0 !important;

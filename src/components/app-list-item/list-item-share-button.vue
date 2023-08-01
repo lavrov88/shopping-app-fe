@@ -5,6 +5,7 @@
   >
     <v-icon icon="mdi-account-multiple" />
     <v-tooltip
+      v-if="!mobileLayout"
       activator="parent"
       location="bottom"
       open-delay="500"
@@ -23,6 +24,7 @@ const { listId } = defineProps<Props>()
 const settingsStore = useSettingsStore()
 const listsStore = useListsStore()
 
+const mobileLayout = computed(() => settingsStore.mobileLayout)
 const list = listsStore.lists.find(l => l.id === listId)
 const sharedUsers = list?.users.sharedUsers
 const tooltipMessage = computed(() => {

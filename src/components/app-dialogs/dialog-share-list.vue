@@ -113,10 +113,12 @@ import DialogShareListItem from './dialog-share-list-item.vue'
 import DialogConfirm from './dialog-confirm.vue'
 import FooterButtons from '../common/footer-buttons.vue'
 import { UserWithName } from '../../types/types'
+import { updateDialogHeight } from '../../utils/dialogs'
 
 const settingsStore = useSettingsStore()
 const listsStore = useListsStore()
 
+const availableWindowHeight = computed(() => settingsStore.availableWindowHeight)
 const listId = computed(() => settingsStore.shareListDialog.listId)
 const list = computed(() => listsStore.sortedLists.find(l => l.id === listId.value))
 const currentUserId = computed(() => settingsStore.user?.id)
@@ -230,7 +232,7 @@ const onDialogClose = () => {
   settingsStore.closeShareListDialog()
 }
 
-// WATCHER
+// WATCHERS
 
 watch(dialogIsOpen, (newValue) => {
   if (newValue) {
@@ -240,7 +242,9 @@ watch(dialogIsOpen, (newValue) => {
     getUsers()
   }
 })
-
+watch(availableWindowHeight, () => {
+  updateDialogHeight(availableWindowHeight.value, 'dialog-share-list');
+})
 </script>
 
 <style>

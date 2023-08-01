@@ -47,9 +47,11 @@ import { PurchaseItem, useListsStore } from '../../../stores/listsStore'
 import { useSettingsStore } from '../../../stores/settingsStore'
 import FooterButtons from '../../common/footer-buttons.vue'
 import EditableItem from '../dialog-manage-lists/editable-item.vue'
+import { updateDialogHeight } from '../../../utils/dialogs'
 
 const settingsStore = useSettingsStore()
 const listsStore = useListsStore()
+const availableWindowHeight = computed(() => settingsStore.availableWindowHeight)
 
 const mapPurchaseToEdititem = (p: PurchaseItem) => {
   return {
@@ -137,6 +139,9 @@ watch(dialogIsOpen, () => {
     revertTemporaryPurchases()
   }
 })
+watch(availableWindowHeight, () => {
+  updateDialogHeight(availableWindowHeight.value, 'dialog-manage-purchases');
+})
 </script>
 
 <style>
@@ -150,6 +155,9 @@ watch(dialogIsOpen, () => {
 }
 .not-draggable {
   cursor: no-drop;
+}
+.editable-item.sortable-drag {
+  display: none !important;
 }
 
 /* MOBILE */
